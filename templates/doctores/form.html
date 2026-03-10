@@ -1,144 +1,261 @@
 {% extends 'base.html' %}
 {% block title %}{% if doctor %}Editar Doctor{% else %}Nuevo Doctor{% endif %} — Sullana Health{% endblock %}
 {% block nav_doctores %}active{% endblock %}
-{% block page_title %}{% if doctor %}Editar Doctor{% else %}Nuevo Doctor{% endif %}{% endblock %}
-{% block page_subtitle %}{% if doctor %}Dr. {{ doctor.apellidos }}{% else %}Registrar nuevo médico{% endif %}{% endblock %}
+{% block page_title %}{% if doctor %}Configuración de Especialista{% else %}Registro de Médico{% endif %}{% endblock %}
+{% block page_subtitle %}{% if doctor %}Gestionando el perfil del Dr. {{ doctor.apellidos }}{% else %}Complete los datos para integrar un nuevo profesional{% endif %}{% endblock %}
 
 {% block header_actions %}
-  <a href="{% url 'doctores:lista' %}" class="btn-secondary">← Volver</a>
+  <a href="{% url 'doctores:lista' %}" class="btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+    <span>←</span> Volver al listado
+  </a>
 {% endblock %}
 
 {% block content %}
+<style>
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    max-width: 1100px;
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .form-card {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  }
+
+  .section-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .input-group { margin-bottom: 16px; }
+
+  .photo-preview-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 12px;
+    margin-top: 10px;
+    border: 1px dashed #cbd5e1;
+  }
+
+  /* Estilo para el panel de Acceso */
+  .access-panel {
+    position: sticky;
+    top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .status-badge-active {
+    background: #f0fdf4;
+    border: 1px solid #dcfce7;
+    color: #16a34a;
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .change-password-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 10px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
-  <div style="display:grid;grid-template-columns:1fr 360px;gap:20px;max-width:960px;">
+  <div class="form-grid">
 
-    <!-- Datos del doctor -->
-    <div style="display:flex;flex-direction:column;gap:16px;">
-
-      <div class="card">
-        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
-          👨‍⚕️ Datos Profesionales
-        </h3>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-          <div>
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      
+      <div class="form-card">
+        <h3 class="section-title"><span>👨‍⚕️</span> Información del Especialista</h3>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="input-group">
             <label class="form-label">Nombres *</label>
-            <input type="text" name="nombres" value="{{ form.nombres.value|default:'' }}" class="form-input" required>
+            <input type="text" name="nombres" value="{{ form.nombres.value|default:'' }}" class="form-input" required placeholder="Ej: Abel Eliu">
           </div>
-          <div>
+          <div class="input-group">
             <label class="form-label">Apellidos *</label>
-            <input type="text" name="apellidos" value="{{ form.apellidos.value|default:'' }}" class="form-input" required>
+            <input type="text" name="apellidos" value="{{ form.apellidos.value|default:'' }}" class="form-input" required placeholder="Ej: Diaz Calero">
           </div>
-          <div style="grid-column:span 2;">
-            <label class="form-label">Especialidad *</label>
-            <input type="text" name="especialidad" value="{{ form.especialidad.value|default:'' }}" class="form-input" required placeholder="Ej: Medicina General, Cardiología...">
+
+          <div class="input-group" style="grid-column: span 2;">
+            <label class="form-label">Especialidad Médica *</label>
+            <input type="text" name="especialidad" value="{{ form.especialidad.value|default:'' }}" class="form-input" required placeholder="Ej: Full Stack Developer / TI Infrastructure">
           </div>
-          <div>
-            <label class="form-label">Cédula profesional *</label>
-            <input type="text" name="cedula" value="{{ form.cedula.value|default:'' }}" class="form-input" required>
-            {% if form.cedula.errors %}<div style="color:#dc2626;font-size:12px;margin-top:3px;">{{ form.cedula.errors.0 }}</div>{% endif %}
+
+          <div class="input-group">
+            <label class="form-label">Cédula Profesional *</label>
+            <input type="text" name="cedula" value="{{ form.cedula.value|default:'' }}" class="form-input" required style="font-family: monospace; font-weight: 600; color: #0d9488;">
+            {% if form.cedula.errors %}<div style="color:#ef4444; font-size:11px; margin-top:4px;">{{ form.cedula.errors.0 }}</div>{% endif %}
           </div>
-          <div>
-            <label class="form-label">Teléfono</label>
-            <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}" class="form-input">
+          <div class="input-group">
+            <label class="form-label">Teléfono de Contacto</label>
+            <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}" class="form-input" placeholder="949021141">
           </div>
-          <div style="grid-column:span 2;">
-            <label class="form-label">Email</label>
-            <input type="email" name="email" value="{{ form.email.value|default:'' }}" class="form-input">
+
+          <div class="input-group" style="grid-column: span 2;">
+            <label class="form-label">Correo Electrónico</label>
+            <input type="email" name="email" value="{{ form.email.value|default:'' }}" class="form-input" placeholder="correo@ejemplo.com">
           </div>
-          <div style="grid-column:span 2;">
-            <label class="form-label">Horario de atención</label>
-            <input type="text" name="horario_atencion" value="{{ form.horario_atencion.value|default:'' }}" class="form-input" placeholder="Ej: Lun-Vie 8:00 - 14:00">
+
+          <div class="input-group" style="grid-column: span 2;">
+            <label class="form-label">Horario Sugerido de Atención</label>
+            <input type="text" name="horario_atencion" value="{{ form.horario_atencion.value|default:'' }}" class="form-input" placeholder="Ej: Lunes a Viernes 08:00 - 16:00">
           </div>
-          <div style="grid-column:span 2;">
-            <label class="form-label">Biografía / Presentación</label>
-            <textarea name="biografia" class="form-input" rows="3" placeholder="Breve presentación del doctor...">{{ form.biografia.value|default:'' }}</textarea>
+
+          <div class="input-group" style="grid-column: span 2;">
+            <label class="form-label">Resumen Curricular / Biografía</label>
+            <textarea name="biografia" class="form-input" rows="3" placeholder="Breve descripción de la trayectoria del doctor...">{{ form.biografia.value|default:'' }}</textarea>
           </div>
-          <div style="grid-column:span 2;">
-            <label class="form-label">Foto</label>
-            <input type="file" name="foto" class="form-input" accept="image/*">
+
+          <div class="input-group" style="grid-column: span 2;">
+            <label class="form-label">Fotografía de Perfil</label>
+            <input type="file" name="foto" class="form-input" accept="image/*" style="padding: 8px;">
             {% if doctor.foto %}
-            <div style="margin-top:8px;display:flex;align-items:center;gap:10px;">
-              <img src="{{ doctor.foto.url }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
-              <span style="font-size:12px;color:#64748b;">Foto actual (sube una nueva para reemplazarla)</span>
-            </div>
+              <div class="photo-preview-container">
+                <img src="{{ doctor.foto.url }}" style="width:45px; height:45px; border-radius:10px; object-fit:cover;">
+                <div>
+                  <div style="font-size:12px; font-weight:700; color:#1e293b;">Imagen actual cargada</div>
+                  <div style="font-size:11px; color:#64748b;">Suba una nueva para actualizar el perfil</div>
+                </div>
+              </div>
             {% endif %}
           </div>
-          <div style="grid-column:span 2;">
-            <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-              <input type="checkbox" name="activo" {% if form.activo.value %}checked{% endif %} style="width:16px;height:16px;accent-color:#0d9488;">
-              Doctor activo (disponible para citas)
+
+          <div style="grid-column: span 2; padding: 10px 0;">
+            <label style="display:flex; align-items:center; gap:12px; cursor:pointer;">
+              <input type="checkbox" name="activo" {% if form.activo.value %}checked{% endif %} style="width:18px; height:18px; accent-color:#0d9488;">
+              <div>
+                <span style="font-size:14px; font-weight:700; color:#1e293b;">Estatus Activo</span>
+                <p style="font-size:12px; color:#64748b; margin:0;">El doctor aparecerá disponible para nuevas citas y consultas.</p>
+              </div>
             </label>
           </div>
         </div>
       </div>
-
     </div>
 
-    <!-- Columna derecha — acceso al sistema -->
-    <div>
-      <div class="card" style="position:sticky;top:80px;">
+    <div class="access-panel">
+      
+      <div class="form-card">
+        <h3 class="section-title"><span>🔐</span> Seguridad y Acceso</h3>
 
         {% if doctor and doctor.usuario %}
-        <!-- Ya tiene usuario -->
-        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px;">🔐 Acceso al Sistema</h3>
-        <div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:8px;padding:14px;margin-bottom:16px;">
-          <div style="font-size:13px;font-weight:600;color:#065f46;margin-bottom:4px;">✅ Usuario activo</div>
-          <div style="font-size:14px;color:#1e293b;font-weight:600;">@{{ doctor.usuario.username }}</div>
-          <div style="font-size:12px;color:#64748b;margin-top:4px;">
-            Para cambiar la contraseña, hazlo desde el panel Admin Django.
+          <div class="status-badge-active">
+            <span>✔️</span> Usuario: <strong>@{{ doctor.usuario.username }}</strong>
           </div>
-        </div>
+          
+          <div class="change-password-box">
+            <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer; color: #0d9488;">
+              <input type="checkbox" id="toggle_pass" onchange="document.getElementById('edit_pass_fields').style.display = this.checked ? 'block' : 'none'" style="accent-color:#0d9488;">
+              <strong>Actualizar Contraseña</strong>
+            </label>
+            
+            <div id="edit_pass_fields" style="display:none; margin-top:15px;">
+              <div class="input-group">
+                <label class="form-label">Nueva Contraseña</label>
+                <input type="password" name="password1" class="form-input" placeholder="••••••••">
+              </div>
+              <div class="input-group">
+                <label class="form-label">Confirmar Contraseña</label>
+                <input type="password" name="password2" class="form-input" placeholder="••••••••">
+              </div>
+              <p style="font-size:11px; color:#94a3b8; line-height:1.4;">Deje estos campos vacíos si no desea cambiar la clave actual.</p>
+            </div>
+          </div>
 
         {% else %}
-        <!-- Sin usuario todavía -->
-        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:6px;">🔐 Acceso al Sistema</h3>
-        <p style="font-size:13px;color:#64748b;margin-bottom:16px;">
-          Crea credenciales para que el doctor pueda iniciar sesión y ver su panel personal.
-        </p>
+          <p style="font-size:13px; color:#64748b; margin-bottom:15px;">
+            Permita que el médico gestione su propia agenda creando una cuenta de acceso.
+          </p>
 
-        <div style="margin-bottom:14px;">
-          <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:12px;">
-            <input type="checkbox" name="crear_usuario" id="toggle_usuario" style="width:16px;height:16px;accent-color:#0d9488;"
-              onchange="document.getElementById('campos_usuario').style.display = this.checked ? 'block' : 'none'">
-            Crear usuario de acceso para este doctor
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin-bottom:15px; background:#f0fdfa; padding:12px; border-radius:10px; border:1px solid #ccfbf1;">
+            <input type="checkbox" name="crear_usuario" id="toggle_usuario" style="width:17px; height:17px; accent-color:#0d9488;"
+              onchange="document.getElementById('new_user_fields').style.display = this.checked ? 'block' : 'none'">
+            <span style="font-size:13px; font-weight:700; color:#0d9488;">Habilitar acceso al sistema</span>
           </label>
-        </div>
 
-        <div id="campos_usuario" style="display:none;">
-          <div style="margin-bottom:12px;">
-            <label class="form-label">Nombre de usuario *</label>
-            <input type="text" name="username" value="{{ form_usuario.username.value|default:'' }}" class="form-input" placeholder="ej: dr.ramirez">
-            {% if form_usuario.username.errors %}<div style="color:#dc2626;font-size:12px;margin-top:3px;">{{ form_usuario.username.errors.0 }}</div>{% endif %}
+          <div id="new_user_fields" style="display:none; animation: fadeIn 0.3s;">
+            <div class="input-group">
+              <label class="form-label">Nombre de usuario *</label>
+              <input type="text" name="username" class="form-input" placeholder="ej: dr.diaz">
+            </div>
+            <div class="input-group">
+              <label class="form-label">Contraseña *</label>
+              <input type="password" name="password1" class="form-input" placeholder="••••••••">
+            </div>
+            <div class="input-group">
+              <label class="form-label">Repetir contraseña *</label>
+              <input type="password" name="password2" class="form-input" placeholder="••••••••">
+            </div>
           </div>
-          <div style="margin-bottom:12px;">
-            <label class="form-label">Contraseña *</label>
-            <input type="password" name="password1" class="form-input" placeholder="••••••••">
-          </div>
-          <div>
-            <label class="form-label">Confirmar contraseña *</label>
-            <input type="password" name="password2" class="form-input" placeholder="••••••••">
-            {% if form_usuario.non_field_errors %}<div style="color:#dc2626;font-size:12px;margin-top:3px;">{{ form_usuario.non_field_errors.0 }}</div>{% endif %}
-          </div>
-        </div>
         {% endif %}
 
-        <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;">
-          <button type="submit" class="btn-primary" style="width:100%;justify-content:center;padding:11px;">
-            {% if doctor %}💾 Guardar cambios{% else %}✅ Registrar doctor{% endif %}
+        <div style="margin-top:24px; display:flex; flex-direction:column; gap:10px;">
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-weight:800; font-size:14px; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);">
+            {% if doctor %}💾 Actualizar Registro{% else %}🚀 Registrar Médico{% endif %}
           </button>
+          
+          {% if doctor %}
+            <button type="button" onclick="confirmDelete()" class="btn-danger" style="width:100%; justify-content:center; padding:10px; font-size:12px; font-weight:700; background:transparent; border:1px solid #fca5a5; color:#ef4444;">
+              🗑️ Eliminar del Sistema
+            </button>
+          {% endif %}
         </div>
+      </div>
 
-        {% if doctor %}
-        <form method="post" action="{% url 'doctores:eliminar' doctor.pk %}" style="margin-top:10px;" onsubmit="return confirm('¿Eliminar al Dr. {{ doctor.apellidos }}?')">
-          {% csrf_token %}
-          <button type="submit" class="btn-danger" style="width:100%;justify-content:center;padding:10px;">🗑 Eliminar doctor</button>
-        </form>
-        {% endif %}
-
+      <div style="padding: 15px; border-radius: 16px; background: #fffbeb; border: 1px solid #fef3c7; display: flex; gap: 10px;">
+        <span style="font-size:18px;">💡</span>
+        <p style="font-size:11px; color:#92400e; margin:0; line-height:1.5;">
+          <strong>Importante:</strong> Al registrar un doctor, asegúrese de que el número de cédula sea el oficial para evitar duplicidad en el historial clínico de Sullana Health.
+        </p>
       </div>
     </div>
 
   </div>
 </form>
+
+{% if doctor %}
+<form id="delete-form" method="post" action="{% url 'doctores:eliminar' doctor.pk %}" style="display:none;">
+  {% csrf_token %}
+</form>
+<script>
+  function confirmDelete() {
+    if (confirm('¿Está completamente seguro de eliminar al Dr. {{ doctor.apellidos }}? Esta acción borrará permanentemente sus datos y acceso.')) {
+      document.getElementById('delete-form').submit();
+    }
+  }
+</script>
+{% endif %}
+
 {% endblock %}

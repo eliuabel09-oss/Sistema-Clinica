@@ -2,187 +2,243 @@
 {% block title %}{{ paciente.nombre_completo }} — Sullana Health{% endblock %}
 {% block nav_pacientes %}active{% endblock %}
 {% block page_title %}{{ paciente.nombre_completo }}{% endblock %}
-{% block page_subtitle %}Expediente clínico completo{% endblock %}
+{% block page_subtitle %}Expediente clínico interactivo{% endblock %}
 
 {% block header_actions %}
-  <a href="{% url 'pacientes:editar' paciente.pk %}" class="btn-secondary">✏️ Editar</a>
-  <a href="{% url 'citas:crear' %}?paciente={{ paciente.pk }}" class="btn-primary">📅 Nueva Cita</a>
+  <div style="display:flex; gap:10px;">
+    <a href="{% url 'pacientes:editar' paciente.pk %}" class="btn-secondary" style="text-decoration:none; padding:10px 18px; border-radius:12px; font-weight:700; display:inline-flex; align-items:center; gap:8px;">
+        <span>✏️</span> Editar Perfil
+    </a>
+    <a href="{% url 'citas:crear' %}?paciente={{ paciente.pk }}" class="btn-primary" style="text-decoration:none; padding:10px 18px; border-radius:12px; font-weight:700; display:inline-flex; align-items:center; gap:8px;">
+        <span>📅</span> Agendar Cita
+    </a>
+  </div>
 {% endblock %}
 
 {% block content %}
-<div style="display:grid;grid-template-columns:320px 1fr;gap:20px;">
+<style>
+    .grid-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; }
+    
+    /* TARJETAS ESTILIZADAS */
+    .pro-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid #f1f5f9;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+    }
 
-  <!-- Columna izquierda -->
-  <div style="display:flex;flex-direction:column;gap:16px;">
+    .section-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #f8fafc;
+    }
 
-    <!-- Perfil -->
-    <div class="card" style="text-align:center;">
-      <div style="width:70px;height:70px;background:{% if paciente.sexo == 'M' %}#dbeafe{% else %}#fce7f3{% endif %};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 12px;">
-        {% if paciente.sexo == 'M' %}👨{% else %}👩{% endif %}
-      </div>
-      <div class="brand" style="font-size:18px;font-weight:700;color:#1e293b;">{{ paciente.nombre_completo }}</div>
-      <div style="font-size:13px;color:#64748b;margin-top:4px;">{{ paciente.edad }} años · {{ paciente.get_sexo_display }}</div>
-      <div style="margin-top:10px;">
-        <span style="background:#ccfbf1;color:#0f766e;padding:4px 14px;border-radius:99px;font-size:13px;font-weight:700;">{{ paciente.tipo_sangre|default:"Sin tipo" }}</span>
-      </div>
-      {% if paciente.activo %}
-        <div style="margin-top:8px;"><span class="badge" style="background:#d1fae5;color:#065f46;">● Activo</span></div>
-      {% else %}
-        <div style="margin-top:8px;"><span class="badge" style="background:#f1f5f9;color:#64748b;">● Inactivo</span></div>
-      {% endif %}
-    </div>
+    .section-title {
+        font-size: 13px; font-weight: 800; color: #64748b;
+        text-transform: uppercase; letter-spacing: 0.05em;
+    }
 
-    <!-- Info de contacto -->
-    <div class="card">
-      <h4 class="brand" style="font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;">Contacto</h4>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div style="display:flex;gap:10px;">
-          <span style="font-size:16px;">📞</span>
-          <div>
-            <div style="font-size:11px;color:#94a3b8;font-weight:600;">Teléfono</div>
-            <div style="font-size:14px;color:#1e293b;">{{ paciente.telefono }}</div>
-          </div>
+    /* PERFIL LATERAL */
+    .profile-header { text-align: center; padding-bottom: 20px; }
+    .avatar-large {
+        width: 90px; height: 90px;
+        border-radius: 30px; margin: 0 auto 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 40px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .contact-item {
+        display: flex; gap: 14px; padding: 12px;
+        background: #f8fafc; border-radius: 16px; margin-bottom: 8px;
+    }
+
+    /* HISTORIAL ITEMS */
+    .history-item {
+        padding: 16px; border-radius: 18px;
+        border: 1px solid #f1f5f9; margin-bottom: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .history-item:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
+
+    .date-box {
+        width: 50px; height: 50px; border-radius: 14px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+
+    /* BADGES */
+    .badge-status { padding: 4px 12px; border-radius: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .status-activo { background: #dcfce7; color: #166534; }
+    .status-inactivo { background: #f1f5f9; color: #475569; }
+
+    @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
+</style>
+
+<div class="grid-layout">
+
+    <aside>
+        <div class="pro-card profile-header">
+            <div class="avatar-large" style="background: {% if paciente.sexo == 'M' %}linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%){% else %}linear-gradient(135deg, #fce7f3 0%, #fdf2f8 100%){% endif %};">
+                {% if paciente.sexo == 'M' %}👨{% else %}👩{% endif %}
+            </div>
+            <h2 style="font-size: 20px; font-weight: 800; color: #1e293b; margin-bottom: 4px;">{{ paciente.nombre_completo }}</h2>
+            <p style="font-size: 14px; color: #64748b; font-weight: 600;">{{ paciente.edad }} años · {{ paciente.get_sexo_display }}</p>
+            
+            <div style="margin-top: 16px; display: flex; justify-content: center; gap: 8px;">
+                <span style="background: #0d9488; color: white; padding: 6px 14px; border-radius: 12px; font-size: 12px; font-weight: 800;">
+                    💉 {{ paciente.tipo_sangre|default:"N/A" }}
+                </span>
+                <span class="badge-status {% if paciente.activo %}status-activo{% else %}status-inactivo{% endif %}">
+                    ● {{ paciente.activo|yesno:"Activo,Inactivo" }}
+                </span>
+            </div>
         </div>
-        {% if paciente.email %}
-        <div style="display:flex;gap:10px;">
-          <span style="font-size:16px;">✉️</span>
-          <div>
-            <div style="font-size:11px;color:#94a3b8;font-weight:600;">Email</div>
-            <div style="font-size:14px;color:#1e293b;">{{ paciente.email }}</div>
-          </div>
-        </div>
-        {% endif %}
-        {% if paciente.direccion %}
-        <div style="display:flex;gap:10px;">
-          <span style="font-size:16px;">📍</span>
-          <div>
-            <div style="font-size:11px;color:#94a3b8;font-weight:600;">Dirección</div>
-            <div style="font-size:14px;color:#1e293b;">{{ paciente.direccion }}</div>
-          </div>
-        </div>
-        {% endif %}
-        {% if paciente.curp %}
-        <div style="display:flex;gap:10px;">
-          <span style="font-size:16px;">🪪</span>
-          <div>
-            <div style="font-size:11px;color:#94a3b8;font-weight:600;">CURP</div>
-            <div style="font-size:13px;color:#1e293b;font-family:monospace;">{{ paciente.curp }}</div>
-          </div>
-        </div>
-        {% endif %}
-      </div>
-    </div>
 
-    <!-- Info médica -->
-    {% if paciente.alergias or paciente.enfermedades_cronicas or paciente.antecedentes %}
-    <div class="card">
-      <h4 class="brand" style="font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;">Antecedentes</h4>
-      {% if paciente.alergias %}
-      <div style="margin-bottom:10px;">
-        <div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:4px;">⚠ ALERGIAS</div>
-        <div style="font-size:13px;color:#1e293b;background:#fee2e2;padding:8px 10px;border-radius:6px;">{{ paciente.alergias }}</div>
-      </div>
-      {% endif %}
-      {% if paciente.enfermedades_cronicas %}
-      <div style="margin-bottom:10px;">
-        <div style="font-size:11px;font-weight:700;color:#d97706;margin-bottom:4px;">Enfermedades crónicas</div>
-        <div style="font-size:13px;color:#1e293b;">{{ paciente.enfermedades_cronicas }}</div>
-      </div>
-      {% endif %}
-      {% if paciente.antecedentes %}
-      <div>
-        <div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:4px;">Antecedentes heredofamiliares</div>
-        <div style="font-size:13px;color:#1e293b;">{{ paciente.antecedentes }}</div>
-      </div>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    <!-- Archivos clínicos -->
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <h4 class="brand" style="font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">Archivos</h4>
-        <a href="{% url 'pacientes:subir_archivo' paciente.pk %}" style="font-size:12px;color:#0d9488;font-weight:600;text-decoration:none;">+ Subir</a>
-      </div>
-      {% for archivo in paciente.archivos.all %}
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;">
-        <span style="font-size:20px;">{% if archivo.tipo == 'PDF' %}📄{% elif archivo.tipo == 'IMG' %}🖼️{% elif archivo.tipo == 'LAB' %}🧪{% elif archivo.tipo == 'RX' %}🫁{% else %}📎{% endif %}</span>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:500;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ archivo.nombre }}</div>
-          <div style="font-size:11px;color:#94a3b8;">{{ archivo.fecha_carga|date:"d/m/Y" }}</div>
+        <div class="pro-card">
+            <h4 class="section-title">Datos de Contacto</h4>
+            <div class="contact-item">
+                <span style="font-size: 18px;">📞</span>
+                <div>
+                    <p style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin: 0;">Teléfono</p>
+                    <p style="font-size: 14px; font-weight: 700; color: #1e293b; margin: 0;">{{ paciente.telefono }}</p>
+                </div>
+            </div>
+            {% if paciente.email %}
+            <div class="contact-item">
+                <span style="font-size: 18px;">✉️</span>
+                <div>
+                    <p style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin: 0;">Email</p>
+                    <p style="font-size: 14px; font-weight: 700; color: #1e293b; margin: 0;">{{ paciente.email }}</p>
+                </div>
+            </div>
+            {% endif %}
+            {% if paciente.direccion %}
+            <div class="contact-item">
+                <span style="font-size: 18px;">📍</span>
+                <div>
+                    <p style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin: 0;">Dirección</p>
+                    <p style="font-size: 14px; font-weight: 600; color: #1e293b; margin: 0; line-height: 1.4;">{{ paciente.direccion }}</p>
+                </div>
+            </div>
+            {% endif %}
+            <div class="contact-item">
+                <span style="font-size: 18px;">🪪</span>
+                <div>
+                    <p style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin: 0;">Identificación (DNI)</p>
+                    <p style="font-size: 13px; font-weight: 700; color: #1e293b; margin: 0; font-family: monospace;">{{ paciente.dni|default:paciente.curp|default:"---" }}</p>
+                </div>
+            </div>
         </div>
-        <a href="{{ archivo.archivo.url }}" target="_blank" style="font-size:12px;color:#0d9488;font-weight:600;text-decoration:none;flex-shrink:0;">Ver</a>
-      </div>
-      {% empty %}
-      <div style="font-size:13px;color:#94a3b8;text-align:center;padding:12px 0;">Sin archivos</div>
-      {% endfor %}
-    </div>
 
-  </div>
-
-  <!-- Columna derecha — Historial -->
-  <div style="display:flex;flex-direction:column;gap:16px;">
-
-    <!-- Últimas citas -->
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;">Historial de Citas</h3>
-        <a href="{% url 'citas:crear' %}?paciente={{ paciente.pk }}" class="btn-primary" style="font-size:12px;padding:5px 12px;">+ Nueva</a>
-      </div>
-      {% for cita in citas %}
-      <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid #f1f5f9;">
-        <div style="width:44px;height:44px;background:#f0fdfa;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
-          <div style="font-size:14px;font-weight:700;color:#0d9488;line-height:1;">{{ cita.fecha_hora|date:"d" }}</div>
-          <div style="font-size:10px;color:#64748b;text-transform:uppercase;">{{ cita.fecha_hora|date:"M" }}</div>
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:14px;font-weight:600;color:#1e293b;">Dr. {{ cita.doctor.apellidos }} — {{ cita.get_tipo_display }}</div>
-          <div style="font-size:12px;color:#94a3b8;">{{ cita.fecha_hora|date:"H:i" }} · {{ cita.duracion_min }} min</div>
-          {% if cita.motivo %}<div style="font-size:12px;color:#64748b;margin-top:2px;">{{ cita.motivo|truncatechars:60 }}</div>{% endif %}
-        </div>
-        <span class="badge badge-{{ cita.estado|lower }}">{{ cita.get_estado_display }}</span>
-      </div>
-      {% empty %}
-      <div style="text-align:center;padding:30px;color:#94a3b8;">
-        <div style="font-size:28px;margin-bottom:8px;">📅</div>
-        <div style="font-size:13px;">Sin citas registradas</div>
-      </div>
-      {% endfor %}
-    </div>
-
-    <!-- Últimas consultas -->
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;">Historial de Consultas</h3>
-        <a href="{% url 'consultas:crear' %}?paciente={{ paciente.pk }}" class="btn-primary" style="font-size:12px;padding:5px 12px;">+ Nueva</a>
-      </div>
-      {% for consulta in consultas %}
-      <div style="padding:14px;background:#f8fafc;border-radius:10px;margin-bottom:10px;border:1px solid #f1f5f9;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <div style="font-size:13px;font-weight:600;color:#1e293b;">Dr. {{ consulta.doctor.apellidos }} · {{ consulta.fecha|date:"d/m/Y" }}</div>
-          {% if consulta.peso_kg and consulta.talla_cm %}
-          <div style="font-size:11px;color:#64748b;">IMC: <strong>{{ consulta.imc }}</strong></div>
-          {% endif %}
-        </div>
-        <div style="font-size:13px;color:#374151;margin-bottom:6px;"><strong>Dx:</strong> {{ consulta.diagnostico|truncatechars:100 }}</div>
-        <div style="font-size:12px;color:#64748b;"><strong>Plan:</strong> {{ consulta.plan|truncatechars:80 }}</div>
-        {% if consulta.recetas.exists %}
-        <div style="margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;">
-          <span style="font-size:11px;font-weight:700;color:#0d9488;">💊 {{ consulta.recetas.count }} medicamento(s) recetado(s)</span>
+        {% if paciente.alergias or paciente.enfermedades_cronicas %}
+        <div class="pro-card" style="border: 1px solid #fee2e2; background: #fffafb;">
+            <h4 class="section-title" style="color: #be185d;">🚨 Alertas Médicas</h4>
+            {% if paciente.alergias %}
+                <div style="margin-bottom: 12px;">
+                    <p style="font-size: 11px; font-weight: 800; color: #dc2626; margin-bottom: 4px;">ALERGIAS</p>
+                    <div style="font-size: 13px; color: #991b1b; font-weight: 600; background: #fee2e2; padding: 10px; border-radius: 12px;">
+                        {{ paciente.alergias }}
+                    </div>
+                </div>
+            {% endif %}
+            {% if paciente.enfermedades_cronicas %}
+                <div>
+                    <p style="font-size: 11px; font-weight: 800; color: #854d0e; margin-bottom: 4px;">CRÓNICAS</p>
+                    <p style="font-size: 13px; color: #713f12; font-weight: 600; margin: 0;">{{ paciente.enfermedades_cronicas }}</p>
+                </div>
+            {% endif %}
         </div>
         {% endif %}
-        <div style="margin-top:8px;">
-          <a href="{% url 'consultas:detalle' consulta.pk %}" style="font-size:12px;color:#0d9488;font-weight:600;text-decoration:none;">Ver consulta completa →</a>
-        </div>
-      </div>
-      {% empty %}
-      <div style="text-align:center;padding:30px;color:#94a3b8;">
-        <div style="font-size:28px;margin-bottom:8px;">📋</div>
-        <div style="font-size:13px;">Sin consultas registradas</div>
-      </div>
-      {% endfor %}
-    </div>
 
-  </div>
+        <div class="pro-card">
+            <div class="section-header">
+                <h4 class="section-title">Documentos</h4>
+                <a href="{% url 'pacientes:subir_archivo' paciente.pk %}" style="font-size: 12px; color: #0d9488; font-weight: 800; text-decoration: none;">+ Subir</a>
+            </div>
+            {% for archivo in paciente.archivos.all %}
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding: 8px; background: #f8fafc; border-radius: 12px;">
+                    <span style="font-size: 24px;">{% if archivo.tipo == 'PDF' %}📄{% elif archivo.tipo == 'IMG' %}🖼️{% else %}📎{% endif %}</span>
+                    <div style="flex: 1; min-width: 0;">
+                        <p style="font-size: 13px; font-weight: 700; color: #1e293b; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ archivo.nombre }}</p>
+                        <p style="font-size: 11px; color: #94a3b8; margin: 0;">{{ archivo.fecha_carga|date:"d M, Y" }}</p>
+                    </div>
+                    <a href="{{ archivo.archivo.url }}" target="_blank" style="font-size: 11px; color: #0d9488; font-weight: 800; text-decoration: none;">Ver</a>
+                </div>
+            {% empty %}
+                <p style="font-size: 13px; color: #94a3b8; text-align: center; margin: 0;">Sin documentos adjuntos</p>
+            {% endfor %}
+        </div>
+    </aside>
+
+    <main>
+        <div class="pro-card">
+            <div class="section-header">
+                <h3 style="font-size: 17px; font-weight: 800; color: #1e293b; margin: 0;">Historial de Citas</h3>
+                <a href="{% url 'citas:crear' %}?paciente={{ paciente.pk }}" class="btn-primary" style="font-size: 12px; padding: 6px 14px;">Nueva Cita</a>
+            </div>
+            {% for cita in citas %}
+            <div class="history-item" style="display: flex; align-items: center; gap: 16px;">
+                <div class="date-box" style="background: #f0fdfa; border: 1px solid #ccfbf1;">
+                    <span style="font-size: 16px; font-weight: 800; color: #0d9488;">{{ cita.fecha_hora|date:"d" }}</span>
+                    <span style="font-size: 10px; font-weight: 800; color: #5eead4; text-transform: uppercase;">{{ cita.fecha_hora|date:"M" }}</span>
+                </div>
+                <div style="flex: 1;">
+                    <p style="font-size: 14px; font-weight: 700; color: #1e293b; margin: 0;">Dr. {{ cita.doctor.apellidos }} — <span style="color: #64748b;">{{ cita.get_tipo_display }}</span></p>
+                    <p style="font-size: 12px; color: #94a3b8; margin: 4px 0 0;">{{ cita.fecha_hora|date:"H:i" }} · {{ cita.duracion_min }} min</p>
+                </div>
+                <span class="badge-status" style="background: #f1f5f9; color: #475569;">{{ cita.get_estado_display }}</span>
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 40px;">
+                <p style="font-size: 32px; margin-bottom: 12px;">🗓️</p>
+                <p style="font-size: 14px; color: #94a3b8; font-weight: 600;">No hay citas registradas anteriormente.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="pro-card">
+            <div class="section-header">
+                <h3 style="font-size: 17px; font-weight: 800; color: #1e293b; margin: 0;">Historial de Consultas Médicas</h3>
+                <a href="{% url 'consultas:crear' %}?paciente={{ paciente.pk }}" class="btn-primary" style="font-size: 12px; padding: 6px 14px;">Nueva Consulta</a>
+            </div>
+            {% for consulta in consultas %}
+            <div class="history-item" style="background: #fcfcfd;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                    <div>
+                        <p style="font-size: 14px; font-weight: 800; color: #1e293b; margin: 0;">🩺 Dr. {{ consulta.doctor.apellidos }}</p>
+                        <p style="font-size: 11px; font-weight: 700; color: #94a3b8; margin-top: 2px;">{{ consulta.fecha|date:"d F, Y" }}</p>
+                    </div>
+                    {% if consulta.imc %}
+                        <div style="text-align: right;">
+                            <span style="font-size: 10px; font-weight: 800; color: #64748b; background: white; padding: 4px 10px; border-radius: 8px; border: 1px solid #e2e8f0;">IMC: {{ consulta.imc }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div style="background: white; padding: 12px; border-radius: 14px; border: 1px solid #f1f5f9;">
+                    <p style="font-size: 13px; color: #334155; line-height: 1.5; margin: 0;">
+                        <strong style="color: #0d9488;">Diagnóstico:</strong> {{ consulta.diagnostico|truncatechars:150 }}
+                    </p>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+                    {% if consulta.recetas.exists %}
+                        <span style="font-size: 11px; font-weight: 800; color: #0d9488; background: #f0fdf4; padding: 4px 10px; border-radius: 8px;">💊 {{ consulta.recetas.count }} Recetas</span>
+                    {% else %}
+                        <span></span>
+                    {% endif %}
+                    <a href="{% url 'consultas:detalle' consulta.pk %}" style="font-size: 12px; font-weight: 800; color: #0d9488; text-decoration: none;">Ver detalle completo →</a>
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 40px;">
+                <p style="font-size: 32px; margin-bottom: 12px;">📋</p>
+                <p style="font-size: 14px; color: #94a3b8; font-weight: 600;">Aún no se han registrado consultas médicas para este paciente.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
 </div>
 {% endblock %}

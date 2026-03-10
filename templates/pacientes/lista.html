@@ -5,108 +5,162 @@
 {% block page_subtitle %}{{ total }} pacientes registrados{% endblock %}
 
 {% block header_actions %}
-  <a href="{% url 'pacientes:crear' %}" class="btn-primary">➕ Nuevo Paciente</a>
+  <a href="{% url 'pacientes:crear' %}" class="btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+    <span>➕</span> Nuevo Paciente
+  </a>
 {% endblock %}
 
 {% block content %}
+<style>
+    /* Ajustes para mantener tu estilo pero más pulido */
+    .search-card {
+        background: white;
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    .table-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
 
-<!-- Buscador -->
-<div class="card" style="margin-bottom:20px;">
-  <form method="get" style="display:flex;gap:10px;align-items:flex-end;">
+    .modern-table { width: 100%; border-collapse: collapse; }
+    .modern-table thead { background: #f8fafc; }
+    .modern-table th {
+        padding: 14px 20px;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 800;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table-row:hover { background-color: #f8fafc; }
+    
+    .badge-sangre {
+        background: #ccfbf1;
+        color: #0f766e;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 11px;
+    }
+
+    .btn-detalle {
+        padding: 6px 12px;
+        background: #f0fdfa;
+        color: #0d9488;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        border: 1px solid #99f6e4;
+        transition: 0.2s;
+    }
+    .btn-detalle:hover { background: #0d9488; color: white; }
+</style>
+
+<div class="search-card">
+  <form method="get" style="display:flex; gap:12px; align-items:flex-end;">
     <div style="flex:1;">
-      <label class="form-label">Buscar paciente</label>
-      <input type="text" name="q" value="{{ request.GET.q }}" class="form-input" placeholder="Nombre, apellido o CURP...">
+      <label class="form-label" style="font-size:12px; font-weight:700; color:#475569; margin-bottom:8px; display:block;">Buscar paciente</label>
+      <input type="text" name="q" value="{{ request.GET.q }}" class="form-input" placeholder="Nombre, apellido o DNI..." style="width:100%; padding:10px; border-radius:10px; border:1px solid #cbd5e1;">
     </div>
     <div style="width:160px;">
-      <label class="form-label">Sexo</label>
-      <select name="sexo" class="form-input">
+      <label class="form-label" style="font-size:12px; font-weight:700; color:#475569; margin-bottom:8px; display:block;">Sexo</label>
+      <select name="sexo" class="form-input" style="width:100%; padding:10px; border-radius:10px; border:1px solid #cbd5e1;">
         <option value="">Todos</option>
         <option value="M" {% if request.GET.sexo == 'M' %}selected{% endif %}>Masculino</option>
         <option value="F" {% if request.GET.sexo == 'F' %}selected{% endif %}>Femenino</option>
       </select>
     </div>
-    <button type="submit" class="btn-primary">🔍 Buscar</button>
+    <button type="submit" class="btn-primary" style="height:42px;">🔍 Buscar</button>
     {% if request.GET.q or request.GET.sexo %}
-      <a href="{% url 'pacientes:lista' %}" class="btn-secondary">✕ Limpiar</a>
+      <a href="{% url 'pacientes:lista' %}" class="btn-secondary" style="height:42px; display:flex; align-items:center; text-decoration:none;">✕ Limpiar</a>
     {% endif %}
   </form>
 </div>
 
-<!-- Tabla -->
-<div class="card" style="padding:0;overflow:hidden;">
-  <table style="width:100%;border-collapse:collapse;">
-    <thead class="table-header">
+<div class="table-card">
+  <table class="modern-table">
+    <thead>
       <tr>
-        <th style="padding:12px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Paciente</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Edad / Sangre</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Teléfono</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">CURP</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Estado</th>
-        <th style="padding:12px 16px;text-align:center;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Acciones</th>
+        <th>Paciente</th>
+        <th>Edad / Sangre</th>
+        <th>Teléfono</th>
+        <th>DNI</th>
+        <th>Estado</th>
+        <th style="text-align:center;">Acciones</th>
       </tr>
     </thead>
     <tbody>
       {% for paciente in pacientes %}
       <tr class="table-row" style="border-bottom:1px solid #f1f5f9;">
-        <td style="padding:14px 20px;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:38px;height:38px;background:{% if paciente.sexo == 'M' %}#dbeafe{% else %}#fce7f3{% endif %};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+        <td style="padding:16px 20px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; background:{% if paciente.sexo == 'M' %}#eff6ff{% else %}#fdf2f8{% endif %}; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px;">
               {% if paciente.sexo == 'M' %}👨{% else %}👩{% endif %}
             </div>
             <div>
-              <div style="font-size:14px;font-weight:600;color:#1e293b;">{{ paciente.nombre_completo }}</div>
-              <div style="font-size:12px;color:#94a3b8;">Registrado {{ paciente.fecha_registro|date:"d/m/Y" }}</div>
+              <div style="font-size:14px; font-weight:700; color:#1e293b;">{{ paciente.nombre_completo }}</div>
+              <div style="font-size:11px; color:#94a3b8; font-weight:500;">Desde {{ paciente.fecha_registro|date:"d/m/Y" }}</div>
             </div>
           </div>
         </td>
-        <td style="padding:14px 16px;">
-          <div style="font-size:14px;font-weight:500;color:#1e293b;">{{ paciente.edad }} años</div>
-          <div style="font-size:12px;color:#64748b;">
-            <span style="background:#ccfbf1;color:#0f766e;padding:2px 8px;border-radius:99px;font-weight:600;">{{ paciente.tipo_sangre|default:"—" }}</span>
-          </div>
+        <td style="padding:16px;">
+          <div style="font-size:14px; font-weight:600; color:#1e293b;">{{ paciente.edad }} años</div>
+          <div style="margin-top:4px;"><span class="badge-sangre">{{ paciente.tipo_sangre|default:"—" }}</span></div>
         </td>
-        <td style="padding:14px 16px;font-size:14px;color:#475569;">{{ paciente.telefono }}</td>
-        <td style="padding:14px 16px;font-size:13px;color:#94a3b8;font-family:monospace;">{{ paciente.curp|default:"—" }}</td>
-        <td style="padding:14px 16px;">
+        <td style="padding:16px; font-size:13px; font-weight:600; color:#475569;">{{ paciente.telefono }}</td>
+        <td style="padding:16px;">
+          <code style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px; color:#64748b; font-family:monospace;">
+            {{ paciente.dni|default:"---" }}
+          </code>
+        </td>
+        <td style="padding:16px;">
           {% if paciente.activo %}
-            <span class="badge" style="background:#d1fae5;color:#065f46;">● Activo</span>
+            <span style="font-size:11px; font-weight:800; color:#059669; background:#ecfdf5; padding:4px 8px; border-radius:6px; text-transform:uppercase;">● Activo</span>
           {% else %}
-            <span class="badge" style="background:#f1f5f9;color:#64748b;">● Inactivo</span>
+            <span style="font-size:11px; font-weight:800; color:#64748b; background:#f1f5f9; padding:4px 8px; border-radius:6px; text-transform:uppercase;">● Inactivo</span>
           {% endif %}
         </td>
-        <td style="padding:14px 16px;text-align:center;">
-          <div style="display:flex;gap:6px;justify-content:center;">
-            <a href="{% url 'pacientes:detalle' paciente.pk %}" style="padding:5px 10px;background:#f0fdfa;color:#0d9488;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #99f6e4;">Ver</a>
-            <a href="{% url 'pacientes:editar' paciente.pk %}" style="padding:5px 10px;background:#f8fafc;color:#475569;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #e2e8f0;">Editar</a>
+        <td style="padding:16px; text-align:center;">
+          <div style="display:flex; gap:8px; justify-content:center;">
+            <a href="{% url 'pacientes:detalle' paciente.pk %}" class="btn-detalle">Ver</a>
+            <a href="{% url 'pacientes:editar' paciente.pk %}" style="padding:6px 12px; background:#f8fafc; color:#64748b; border-radius:8px; font-size:12px; font-weight:700; text-decoration:none; border:1px solid #e2e8f0;">Editar</a>
           </div>
         </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="6" style="padding:60px;text-align:center;color:#94a3b8;">
-          <div style="font-size:36px;margin-bottom:12px;">👤</div>
-          <div style="font-size:15px;font-weight:500;">No se encontraron pacientes</div>
-          <div style="font-size:13px;margin-top:4px;">
-            <a href="{% url 'pacientes:crear' %}" style="color:#0d9488;font-weight:600;">Registrar el primero</a>
-          </div>
+        <td colspan="6" style="padding:60px; text-align:center; color:#94a3b8;">
+          <div style="font-size:40px; margin-bottom:12px;">🍃</div>
+          <div style="font-size:14px; font-weight:600;">No se encontraron pacientes registrados</div>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 
-  <!-- Paginación -->
   {% if pacientes.has_other_pages %}
-  <div style="padding:16px 20px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
-    <span style="font-size:13px;color:#64748b;">
-      Mostrando {{ pacientes.start_index }}–{{ pacientes.end_index }} de {{ pacientes.paginator.count }}
+  <div style="padding:16px 20px; background:#f8fafc; border-top:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between;">
+    <span style="font-size:12px; color:#64748b; font-weight:600;">
+      Mostrando <b>{{ pacientes.start_index }}–{{ pacientes.end_index }}</b> de {{ pacientes.paginator.count }}
     </span>
-    <div style="display:flex;gap:4px;">
+    <div style="display:flex; gap:6px;">
       {% if pacientes.has_previous %}
-        <a href="?page={{ pacientes.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" style="padding:5px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;color:#475569;text-decoration:none;">← Anterior</a>
+        <a href="?page={{ pacientes.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" style="padding:6px 12px; background:white; border:1px solid #e2e8f0; border-radius:8px; font-size:12px; color:#475569; text-decoration:none; font-weight:700;">Anterior</a>
       {% endif %}
       {% if pacientes.has_next %}
-        <a href="?page={{ pacientes.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" style="padding:5px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;color:#475569;text-decoration:none;">Siguiente →</a>
+        <a href="?page={{ pacientes.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" style="padding:6px 12px; background:white; border:1px solid #e2e8f0; border-radius:8px; font-size:12px; color:#475569; text-decoration:none; font-weight:700;">Siguiente</a>
       {% endif %}
     </div>
   </div>

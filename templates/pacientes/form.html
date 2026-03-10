@@ -5,50 +5,144 @@
 {% block page_subtitle %}{% if paciente %}Actualizar datos de {{ paciente.nombre_completo }}{% else %}Registrar nuevo paciente{% endif %}{% endblock %}
 
 {% block header_actions %}
-  <a href="{% if paciente %}{% url 'pacientes:detalle' paciente.pk %}{% else %}{% url 'pacientes:lista' %}{% endif %}" class="btn-secondary">← Volver</a>
+  <a href="{% if paciente %}{% url 'pacientes:detalle' paciente.pk %}{% else %}{% url 'pacientes:lista' %}{% endif %}" class="btn-secondary" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+    <span>←</span> Volver
+  </a>
 {% endblock %}
 
 {% block content %}
-<div style="max-width:860px;">
+<style>
+    :root {
+        --brand-primary: #0d9488;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+    }
+
+    .form-card {
+        background: white;
+        padding: 28px;
+        border-radius: 20px;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .label-pro {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .input-pro {
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1.5px solid #e2e8f0;
+        font-size: 14px;
+        transition: all 0.2s;
+        background: #f8fafc;
+    }
+
+    .input-pro:focus {
+        outline: none;
+        border-color: var(--brand-primary);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    }
+
+    .textarea-pro {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .btn-save {
+        background: var(--brand-primary);
+        color: white;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        transition: 0.3s;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(13, 148, 136, 0.3);
+    }
+
+    .error-msg {
+        color: #dc2626;
+        font-size: 12px;
+        font-weight: 600;
+    }
+</style>
+
+<div style="max-width: 900px; margin: 0 auto;">
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
-    <!-- Datos personales -->
-    <div class="card" style="margin-bottom:16px;">
-      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
-        👤 Datos Personales
+    <div class="form-card">
+      <h3 class="section-title">
+        <span style="background:#f0fdf4; padding:8px; border-radius:10px;">👤</span> Datos Personales
       </h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div>
-          <label class="form-label">Nombres *</label>
-          <input type="text" name="nombres" value="{{ form.nombres.value|default:'' }}" class="form-input" required placeholder="Ej: Juan Pablo">
-          {% if form.nombres.errors %}<div style="color:#dc2626;font-size:12px;margin-top:4px;">{{ form.nombres.errors.0 }}</div>{% endif %}
+      <div class="form-grid">
+        <div class="field-group">
+          <label class="label-pro">Nombres *</label>
+          <input type="text" name="nombres" value="{{ form.nombres.value|default:'' }}" class="input-pro" required placeholder="Juan Pablo">
+          {% if form.nombres.errors %}<span class="error-msg">{{ form.nombres.errors.0 }}</span>{% endif %}
         </div>
-        <div>
-          <label class="form-label">Apellidos *</label>
-          <input type="text" name="apellidos" value="{{ form.apellidos.value|default:'' }}" class="form-input" required placeholder="Ej: García López">
-          {% if form.apellidos.errors %}<div style="color:#dc2626;font-size:12px;margin-top:4px;">{{ form.apellidos.errors.0 }}</div>{% endif %}
+        <div class="field-group">
+          <label class="label-pro">Apellidos *</label>
+          <input type="text" name="apellidos" value="{{ form.apellidos.value|default:'' }}" class="input-pro" required placeholder="García López">
+          {% if form.apellidos.errors %}<span class="error-msg">{{ form.apellidos.errors.0 }}</span>{% endif %}
         </div>
-        <div>
-          <label class="form-label">Fecha de Nacimiento *</label>
-          <input type="date" name="fecha_nacimiento" value="{{ form.fecha_nacimiento.value|default:'' }}" class="form-input" required>
+        <div class="field-group">
+          <label class="label-pro">Fecha de Nacimiento *</label>
+          <input type="date" name="fecha_nacimiento" value="{{ form.fecha_nacimiento.value|default:'' }}" class="input-pro" required>
         </div>
-        <div>
-          <label class="form-label">Sexo *</label>
-          <select name="sexo" class="form-input" required>
+        <div class="field-group">
+          <label class="label-pro">Sexo *</label>
+          <select name="sexo" class="input-pro" required>
             <option value="">Seleccionar...</option>
             <option value="M" {% if form.sexo.value == 'M' %}selected{% endif %}>Masculino</option>
             <option value="F" {% if form.sexo.value == 'F' %}selected{% endif %}>Femenino</option>
-            <option value="O" {% if form.sexo.value == 'O' %}selected{% endif %}>Otro</option>
           </select>
         </div>
-        <div>
-          <label class="form-label">CURP</label>
-          <input type="text" name="curp" value="{{ form.curp.value|default:'' }}" class="form-input" placeholder="18 caracteres" maxlength="18" style="text-transform:uppercase;">
+        <div class="field-group">
+          <label class="label-pro">DNI / Documento</label>
+          <input type="text" name="dni" value="{{ form.dni.value|default:form.curp.value|default:'' }}" class="input-pro" placeholder="N° de documento">
         </div>
-        <div>
-          <label class="form-label">Tipo de Sangre</label>
-          <select name="tipo_sangre" class="form-input">
+        <div class="field-group">
+          <label class="label-pro">Tipo de Sangre</label>
+          <select name="tipo_sangre" class="input-pro">
             <option value="">Desconocido</option>
             {% for val, label in form.tipo_sangre.field.choices %}
               {% if val %}
@@ -60,70 +154,69 @@
       </div>
     </div>
 
-    <!-- Contacto -->
-    <div class="card" style="margin-bottom:16px;">
-      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
-        📞 Contacto
+    <div class="form-card">
+      <h3 class="section-title">
+        <span style="background:#eff6ff; padding:8px; border-radius:10px;">📞</span> Información de Contacto
       </h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div>
-          <label class="form-label">Teléfono *</label>
-          <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}" class="form-input" required placeholder="Ej: 555-2001">
+      <div class="form-grid">
+        <div class="field-group">
+          <label class="label-pro">Teléfono *</label>
+          <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}" class="input-pro" required placeholder="Ej: 949021141">
         </div>
-        <div>
-          <label class="form-label">Email</label>
-          <input type="email" name="email" value="{{ form.email.value|default:'' }}" class="form-input" placeholder="correo@ejemplo.com">
+        <div class="field-group">
+          <label class="label-pro">Email</label>
+          <input type="email" name="email" value="{{ form.email.value|default:'' }}" class="input-pro" placeholder="correo@ejemplo.com">
         </div>
-        <div style="grid-column:span 2;">
-          <label class="form-label">Dirección</label>
-          <input type="text" name="direccion" value="{{ form.direccion.value|default:'' }}" class="form-input" placeholder="Calle, colonia, ciudad">
+        <div class="field-group" style="grid-column: span 2;">
+          <label class="label-pro">Dirección Residencial</label>
+          <input type="text" name="direccion" value="{{ form.direccion.value|default:'' }}" class="input-pro" placeholder="Calle, Urb, Ciudad...">
         </div>
       </div>
     </div>
 
-    <!-- Información médica -->
-    <div class="card" style="margin-bottom:20px;">
-      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
-        🏥 Información Médica
+    <div class="form-card">
+      <h3 class="section-title">
+        <span style="background:#fff7ed; padding:8px; border-radius:10px;">🏥</span> Antecedentes Médicos
       </h3>
-      <div style="display:grid;gap:16px;">
-        <div>
-          <label class="form-label">Alergias conocidas</label>
-          <textarea name="alergias" class="form-input" rows="2" placeholder="Ej: Penicilina, aspirina...">{{ form.alergias.value|default:'' }}</textarea>
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div class="field-group">
+          <label class="label-pro">Alergias conocidas</label>
+          <textarea name="alergias" class="input-pro textarea-pro" placeholder="Describa alergias alimentarias o medicamentosas...">{{ form.alergias.value|default:'' }}</textarea>
         </div>
-        <div>
-          <label class="form-label">Enfermedades crónicas</label>
-          <textarea name="enfermedades_cronicas" class="form-input" rows="2" placeholder="Ej: Diabetes tipo 2, hipertensión...">{{ form.enfermedades_cronicas.value|default:'' }}</textarea>
+        <div class="field-group">
+          <label class="label-pro">Enfermedades crónicas</label>
+          <textarea name="enfermedades_cronicas" class="input-pro textarea-pro" placeholder="Ej: Hipertensión, Asma...">{{ form.enfermedades_cronicas.value|default:'' }}</textarea>
         </div>
-        <div>
-          <label class="form-label">Antecedentes heredofamiliares</label>
-          <textarea name="antecedentes" class="form-input" rows="2" placeholder="Ej: Padre con diabetes, madre con hipertensión...">{{ form.antecedentes.value|default:'' }}</textarea>
-        </div>
-        <div>
-          <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-            <input type="checkbox" name="activo" {% if form.activo.value %}checked{% endif %} style="width:16px;height:16px;accent-color:#0d9488;">
-            Paciente activo
+        <div class="field-group">
+          <label class="label-pro" style="display:inline-flex; align-items:center; gap:10px; cursor:pointer; background:#f8fafc; padding:12px; border-radius:12px; width:fit-content;">
+            <input type="checkbox" name="activo" {% if form.activo.value %}checked{% endif %} style="width:18px; height:18px; accent-color:var(--brand-primary);">
+            <span style="font-size:14px; color:var(--text-main); text-transform:none;">Paciente con estado activo</span>
           </label>
         </div>
       </div>
     </div>
 
-    <!-- Botones -->
-    <div style="display:flex;gap:10px;">
-      <button type="submit" class="btn-primary" style="padding:10px 28px;font-size:15px;">
-        {% if paciente %}💾 Guardar cambios{% else %}✅ Registrar paciente{% endif %}
+    <div style="display:flex; align-items:center; gap:12px; margin-top:32px; padding-bottom:40px;">
+      <button type="submit" class="btn-save">
+        {% if paciente %}💾 Actualizar Paciente{% else %}✅ Registrar Paciente{% endif %}
       </button>
-      <a href="{% if paciente %}{% url 'pacientes:detalle' paciente.pk %}{% else %}{% url 'pacientes:lista' %}{% endif %}" class="btn-secondary" style="padding:10px 20px;">
+      
+      <a href="{% if paciente %}{% url 'pacientes:detalle' paciente.pk %}{% else %}{% url 'pacientes:lista' %}{% endif %}" class="btn-secondary" style="text-decoration:none; padding:14px 24px; border-radius:14px; font-weight:700;">
         Cancelar
       </a>
+
       {% if paciente %}
-      <form method="post" action="{% url 'pacientes:eliminar' paciente.pk %}" style="margin-left:auto;" onsubmit="return confirm('¿Eliminar este paciente?')">
-        {% csrf_token %}
-        <button type="submit" class="btn-danger" style="padding:10px 18px;">🗑 Eliminar</button>
-      </form>
+      <button type="button" onclick="if(confirm('¿Estás seguro de eliminar este registro? Esta acción no se puede deshacer.')) document.getElementById('delete-form').submit();" class="btn-danger" style="margin-left:auto; padding:14px 20px; border-radius:14px; border:none; font-weight:700; cursor:pointer;">
+        🗑 Eliminar
+      </button>
       {% endif %}
     </div>
-
   </form>
+
+  {% if paciente %}
+  <form id="delete-form" method="post" action="{% url 'pacientes:eliminar' paciente.pk %}" style="display:none;">
+    {% csrf_token %}
+  </form>
+  {% endif %}
 </div>
 {% endblock %}

@@ -1,113 +1,315 @@
 {% extends 'base.html' %}
-{% block title %}Citas — Sullana Health{% endblock %}
+{% block title %}Agenda Médica — Sullana Health{% endblock %}
 {% block nav_citas %}active{% endblock %}
-{% block page_title %}Citas{% endblock %}
-{% block page_subtitle %}Agenda y gestión de citas{% endblock %}
+{% block page_title %}Agenda Médica{% endblock %}
+{% block page_subtitle %}Gestión de citas y horarios{% endblock %}
 
 {% block header_actions %}
-  <a href="{% url 'citas:crear' %}" class="btn-primary">➕ Nueva Cita</a>
+  <a href="{% url 'citas:crear' %}" class="btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+    <span>➕</span> Nueva Cita
+  </a>
 {% endblock %}
 
 {% block content %}
+<style>
+    /* FILTROS */
+    .filter-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid #f1f5f9;
+        margin-bottom: 20px;
+    }
 
-<!-- Filtros -->
-<div class="card" style="margin-bottom:20px;">
-  <form method="get" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-    <div style="flex:1;min-width:200px;">
-      <label class="form-label">Buscar</label>
-      <input type="text" name="q" value="{{ request.GET.q }}" class="form-input" placeholder="Paciente o doctor...">
+    .filter-form {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .input-group {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .filter-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 8px;
+    }
+
+    .filter-input {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        font-size: 14px;
+        color: #1e293b;
+        transition: 0.2s;
+    }
+
+    .filter-input:focus {
+        outline: none;
+        border-color: #0d9488;
+        background: white;
+    }
+
+    /* TABLA ESTILO PACIENTES */
+    .agenda-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+    }
+
+    .table-app { width: 100%; border-collapse: collapse; }
+    
+    .th-app {
+        background: #f8fafc;
+        padding: 14px 20px;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .td-app { 
+        padding: 16px 20px; 
+        border-bottom: 1px solid #f1f5f9; 
+        font-size: 14px;
+        color: #475569;
+    }
+
+    .time-box {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .time-main { font-weight: 600; color: #1e293b; }
+    .time-sub { font-size: 12px; color: #94a3b8; }
+
+    .patient-name {
+        font-weight: 500;
+        color: #0d9488;
+        text-decoration: none;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .btn-icon {
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: 0.2s;
+        cursor: pointer;
+    }
+
+    .btn-edit { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+    .btn-check { background: #dcfce7; color: #166534; }
+    .btn-del { background: #fee2e2; color: #991b1b; }
+
+    .pagination-box {
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fcfcfd;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    /* MODAL PERSONALIZADO */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 24px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        border: 1px solid #f1f5f9;
+    }
+
+    .modal-title { font-weight: 700; color: #1e293b; font-size: 18px; margin-bottom: 8px; }
+    .modal-desc { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+    .modal-btns { display: flex; gap: 12px; justify-content: center; }
+</style>
+
+<div class="filter-card">
+    <form method="get" class="filter-form">
+        <div class="input-group" style="flex: 2;">
+            <label class="filter-label">Buscar</label>
+            <input type="text" name="q" value="{{ request.GET.q }}" class="filter-input" placeholder="Paciente o doctor...">
+        </div>
+        
+        <div class="input-group">
+            <label class="filter-label">Estado</label>
+            <select name="estado" class="filter-input">
+                <option value="">Todos</option>
+                <option value="PENDIENTE" {% if request.GET.estado == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+                <option value="CONFIRMADA" {% if request.GET.estado == 'CONFIRMADA' %}selected{% endif %}>Confirmada</option>
+                <option value="CANCELADA" {% if request.GET.estado == 'CANCELADA' %}selected{% endif %}>Cancelada</option>
+                <option value="COMPLETADA" {% if request.GET.estado == 'COMPLETADA' %}selected{% endif %}>Completada</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label class="filter-label">Fecha</label>
+            <input type="date" name="fecha" value="{{ request.GET.fecha }}" class="filter-input">
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+            <button type="submit" class="btn-primary" style="padding: 10px 18px; border-radius: 10px;">Filtrar</button>
+            {% if request.GET.q or request.GET.estado or request.GET.fecha %}
+                <a href="{% url 'citas:lista' %}" class="btn-secondary" style="padding: 10px 14px; border-radius: 10px; text-decoration: none;">✕</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="agenda-card">
+    <table class="table-app">
+        <thead>
+            <tr>
+                <th class="th-app">Fecha y Hora</th>
+                <th class="th-app">Paciente</th>
+                <th class="th-app">Doctor</th>
+                <th class="th-app">Tipo</th>
+                <th class="th-app">Estado</th>
+                <th class="th-app" style="text-align: center;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cita in citas %}
+            <tr>
+                <td class="td-app">
+                    <div class="time-box">
+                        <span class="time-main">{{ cita.fecha_hora|date:"d/m/Y" }} — {{ cita.fecha_hora|date:"H:i" }}</span>
+                        <span class="time-sub">{{ cita.duracion_min }} min duración</span>
+                    </div>
+                </td>
+                
+                <td class="td-app">
+                    <a href="{% url 'pacientes:detalle' cita.paciente.pk %}" class="patient-name">
+                        {{ cita.paciente.nombre_completo }}
+                    </a>
+                </td>
+
+                <td class="td-app">Dr. {{ cita.doctor.apellidos }}</td>
+
+                <td class="td-app">
+                    <span style="color: #64748b;">{{ cita.get_tipo_display }}</span>
+                </td>
+
+                <td class="td-app">
+                    <span class="badge badge-{{ cita.estado|lower }}">
+                        {{ cita.get_estado_display }}
+                    </span>
+                </td>
+
+                <td class="td-app">
+                    <div class="action-group">
+                        <a href="{% url 'citas:editar' cita.pk %}" class="btn-icon btn-edit" title="Editar">✏️</a>
+
+                        {% if cita.estado == 'PENDIENTE' %}
+                        <a href="{% url 'citas:cambiar_estado' cita.pk %}?estado=CONFIRMADA" class="btn-icon btn-check">✓ Confirmar</a>
+                        {% endif %}
+
+                        {% if cita.estado != 'CANCELADA' and cita.estado != 'COMPLETADA' %}
+                        <button type="button" class="btn-icon btn-del" onclick="confirmCancel('{% url 'citas:cambiar_estado' cita.pk %}?estado=CANCELADA')">✕</button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="padding: 60px; text-align: center; color: #94a3b8;">
+                    <div style="font-size: 32px; margin-bottom: 12px;">📅</div>
+                    <p style="margin: 0; font-size: 15px;">No se encontraron citas en la agenda</p>
+                    <a href="{% url 'citas:crear' %}" style="display: inline-block; margin-top: 10px; color: #0d9488; text-decoration: none; font-size: 13px; font-weight: 600;">Registrar nueva cita</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if citas.has_other_pages %}
+    <div class="pagination-box">
+        <span style="font-size: 13px; color: #64748b;">Total: {{ citas.paginator.count }} citas</span>
+        <div style="display: flex; gap: 6px;">
+            {% if citas.has_previous %}
+                <a href="?page={{ citas.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn-icon btn-edit">Anterior</a>
+            {% endif %}
+            
+            {% if citas.has_next %}
+                <a href="?page={{ citas.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn-icon btn-edit">Siguiente</a>
+            {% endif %}
+        </div>
     </div>
-    <div style="width:160px;">
-      <label class="form-label">Estado</label>
-      <select name="estado" class="form-input">
-        <option value="">Todos</option>
-        <option value="PENDIENTE"  {% if request.GET.estado == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
-        <option value="CONFIRMADA" {% if request.GET.estado == 'CONFIRMADA' %}selected{% endif %}>Confirmada</option>
-        <option value="CANCELADA"  {% if request.GET.estado == 'CANCELADA' %}selected{% endif %}>Cancelada</option>
-        <option value="COMPLETADA" {% if request.GET.estado == 'COMPLETADA' %}selected{% endif %}>Completada</option>
-      </select>
-    </div>
-    <div style="width:160px;">
-      <label class="form-label">Fecha</label>
-      <input type="date" name="fecha" value="{{ request.GET.fecha }}" class="form-input">
-    </div>
-    <button type="submit" class="btn-primary">🔍 Filtrar</button>
-    {% if request.GET.q or request.GET.estado or request.GET.fecha %}
-      <a href="{% url 'citas:lista' %}" class="btn-secondary">✕ Limpiar</a>
     {% endif %}
-  </form>
 </div>
 
-<!-- Tabla de citas -->
-<div class="card" style="padding:0;overflow:hidden;">
-  <table style="width:100%;border-collapse:collapse;">
-    <thead class="table-header">
-      <tr>
-        <th style="padding:12px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Fecha y Hora</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Paciente</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Doctor</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Tipo</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Estado</th>
-        <th style="padding:12px 16px;text-align:center;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for cita in citas %}
-      <tr class="table-row" style="border-bottom:1px solid #f1f5f9;">
-        <td style="padding:14px 20px;">
-          <div style="font-size:14px;font-weight:600;color:#1e293b;">{{ cita.fecha_hora|date:"d/m/Y" }}</div>
-          <div style="font-size:12px;color:#64748b;">{{ cita.fecha_hora|date:"H:i" }} · {{ cita.duracion_min }} min</div>
-        </td>
-        <td style="padding:14px 16px;">
-          <a href="{% url 'pacientes:detalle' cita.paciente.pk %}" style="font-size:14px;font-weight:500;color:#0d9488;text-decoration:none;">
-            {{ cita.paciente.nombre_completo }}
-          </a>
-        </td>
-        <td style="padding:14px 16px;font-size:14px;color:#475569;">Dr. {{ cita.doctor.apellidos }}</td>
-        <td style="padding:14px 16px;">
-          <span style="font-size:13px;color:#64748b;">{{ cita.get_tipo_display }}</span>
-        </td>
-        <td style="padding:14px 16px;">
-          <span class="badge badge-{{ cita.estado|lower }}">{{ cita.get_estado_display }}</span>
-        </td>
-        <td style="padding:14px 16px;text-align:center;">
-          <div style="display:flex;gap:6px;justify-content:center;">
-            <a href="{% url 'citas:editar' cita.pk %}" style="padding:5px 10px;background:#f8fafc;color:#475569;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #e2e8f0;">Editar</a>
-            {% if cita.estado == 'PENDIENTE' %}
-            <a href="{% url 'citas:cambiar_estado' cita.pk %}?estado=CONFIRMADA" style="padding:5px 10px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">✓ Confirmar</a>
-            {% endif %}
-            {% if cita.estado != 'CANCELADA' and cita.estado != 'COMPLETADA' %}
-            <a href="{% url 'citas:cambiar_estado' cita.pk %}?estado=CANCELADA" style="padding:5px 10px;background:#fee2e2;color:#991b1b;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;" onclick="return confirm('¿Cancelar esta cita?')">✕</a>
-            {% endif %}
-          </div>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="6" style="padding:60px;text-align:center;color:#94a3b8;">
-          <div style="font-size:36px;margin-bottom:12px;">📅</div>
-          <div style="font-size:15px;font-weight:500;">No hay citas registradas</div>
-          <div style="margin-top:8px;">
-            <a href="{% url 'citas:crear' %}" style="color:#0d9488;font-weight:600;font-size:13px;">Crear la primera cita</a>
-          </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  {% if citas.has_other_pages %}
-  <div style="padding:16px 20px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
-    <span style="font-size:13px;color:#64748b;">{{ citas.paginator.count }} citas en total</span>
-    <div style="display:flex;gap:4px;">
-      {% if citas.has_previous %}
-        <a href="?page={{ citas.previous_page_number }}" style="padding:5px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;color:#475569;text-decoration:none;">← Anterior</a>
-      {% endif %}
-      {% if citas.has_next %}
-        <a href="?page={{ citas.next_page_number }}" style="padding:5px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;color:#475569;text-decoration:none;">Siguiente →</a>
-      {% endif %}
+<div id="cancelModal" class="modal-overlay">
+    <div class="modal-content">
+        <div style="font-size: 30px; margin-bottom: 16px;">⚠️</div>
+        <div class="modal-title">¿Cancelar esta cita?</div>
+        <p class="modal-desc">Esta acción cambiará el estado de la cita a cancelada y no podrá revertirse fácilmente.</p>
+        <div class="modal-btns">
+            <button type="button" onclick="closeModal()" class="btn-secondary" style="padding: 10px 20px; border-radius: 10px; cursor: pointer;">Volver</button>
+            <a id="confirmCancelBtn" href="#" class="btn-primary" style="background: #ef4444; padding: 10px 20px; border-radius: 10px; text-decoration: none;">Sí, cancelar</a>
+        </div>
     </div>
-  </div>
-  {% endif %}
 </div>
+
+<div style="margin-top: 20px; padding: 14px; background: #f0fdf4; border-radius: 12px; border: 1px solid #dcfce7;">
+    <p style="margin: 0; font-size: 13px; color: #166534;">
+        💡 <strong>Tip:</strong> Puedes filtrar por fecha para organizar mejor las consultas de hoy.
+    </p>
+</div>
+
+<script>
+    const modal = document.getElementById('cancelModal');
+    const confirmBtn = document.getElementById('confirmCancelBtn');
+
+    function confirmCancel(url) {
+        confirmBtn.href = url;
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    // Cerrar si hace clic fuera del contenido
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+
 {% endblock %}

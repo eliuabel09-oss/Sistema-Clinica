@@ -1,79 +1,225 @@
 {% extends 'base.html' %}
 {% block title %}Doctores — Sullana Health{% endblock %}
 {% block nav_doctores %}active{% endblock %}
-{% block page_title %}Doctores{% endblock %}
-{% block page_subtitle %}{{ doctores.count }} doctores registrados{% endblock %}
+{% block page_title %}Panel de Especialistas{% endblock %}
+{% block page_subtitle %}Gestionando {{ doctores.count }} doctores en Sullana Health{% endblock %}
 
 {% block header_actions %}
-  <a href="{% url 'doctores:crear' %}" class="btn-primary">➕ Nuevo Doctor</a>
+  <a href="{% url 'doctores:crear' %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700;">
+    <span>➕</span> Registrar Doctor
+  </a>
 {% endblock %}
 
 {% block content %}
-<div class="card" style="padding:0;overflow:hidden;">
-  <table style="width:100%;border-collapse:collapse;">
-    <thead class="table-header">
+<style>
+  /* Contenedor de Tabla con Originalidad y Estilo */
+  .doctor-card-container {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .doctor-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .doctor-table thead th {
+    background: #f8fafc;
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .doctor-table tbody td {
+    padding: 16px 20px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .doctor-row:hover {
+    background-color: #fcfdfe;
+    transition: background 0.2s;
+  }
+
+  /* Avatares y Tags */
+  .doc-avatar-wrapper {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f0fdfa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ccfbf1;
+    flex-shrink: 0;
+  }
+
+  .specialty-badge {
+    background: #f0fdfa;
+    color: #0d9488;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid #ccfbf1;
+    display: inline-block;
+  }
+
+  .access-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .access-active { background: #d1fae5; color: #065f46; }
+  .access-inactive { background: #fee2e2; color: #b91c1c; }
+
+  /* Botones de Acción Estilizados */
+  .btn-edit-doc {
+    padding: 7px 14px;
+    background: #ffffff;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-edit-doc:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #1e293b;
+  }
+
+  .btn-delete-doc {
+    padding: 7px 10px;
+    background: #fff;
+    color: #ef4444;
+    border: 1px solid #fee2e2;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-delete-doc:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="doctor-card-container">
+  <table class="doctor-table">
+    <thead>
       <tr>
-        <th style="padding:12px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Doctor</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Especialidad</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Cédula</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Contacto</th>
-        <th style="padding:12px 16px;text-align:center;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Acceso sistema</th>
-        <th style="padding:12px 16px;text-align:center;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Acciones</th>
+        <th>Especialista</th>
+        <th>Especialidad</th>
+        <th>Identificación</th>
+        <th>Contacto Directo</th>
+        <th style="text-align:center;">Acceso Sistema</th>
+        <th style="text-align:center;">Gestión</th>
       </tr>
     </thead>
     <tbody>
       {% for doctor in doctores %}
-      <tr class="table-row" style="border-bottom:1px solid #f1f5f9;">
-        <td style="padding:14px 20px;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            {% if doctor.foto %}
-              <img src="{{ doctor.foto.url }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;">
-            {% else %}
-              <div style="width:40px;height:40px;background:#ccfbf1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👨‍⚕️</div>
-            {% endif %}
+      <tr class="doctor-row">
+        <td>
+          <div style="display:flex; align-items:center; gap:15px;">
+            <div class="doc-avatar-wrapper">
+              {% if doctor.foto %}
+                <img src="{{ doctor.foto.url }}" style="width:100%; height:100%; object-fit:cover;">
+              {% else %}
+                <span style="font-size: 20px;">👨‍⚕️</span>
+              {% endif %}
+            </div>
             <div>
-              <div style="font-size:14px;font-weight:600;color:#1e293b;">Dr. {{ doctor.apellidos }}, {{ doctor.nombres }}</div>
-              {% if doctor.horario_atencion %}<div style="font-size:11px;color:#94a3b8;">🕐 {{ doctor.horario_atencion }}</div>{% endif %}
+              <div style="font-size:14px; font-weight:700; color:#1e293b;">Dr. {{ doctor.apellidos }}, {{ doctor.nombres }}</div>
+              {% if doctor.horario_atencion %}
+                <div style="font-size:11px; color:#64748b; margin-top: 2px;">🕐 Horario: {{ doctor.horario_atencion }}</div>
+              {% endif %}
             </div>
           </div>
         </td>
-        <td style="padding:14px 16px;">
-          <span style="background:#f0fdfa;color:#0f766e;padding:4px 12px;border-radius:99px;font-size:13px;font-weight:600;">{{ doctor.especialidad }}</span>
+
+        <td>
+          <span class="specialty-badge">{{ doctor.especialidad }}</span>
         </td>
-        <td style="padding:14px 16px;font-size:13px;color:#475569;font-family:monospace;">{{ doctor.cedula }}</td>
-        <td style="padding:14px 16px;">
-          <div style="font-size:13px;color:#1e293b;">{{ doctor.telefono }}</div>
-          {% if doctor.email %}<div style="font-size:12px;color:#94a3b8;">{{ doctor.email }}</div>{% endif %}
+
+        <td>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size:12px; color:#475569; letter-spacing: 0.5px;">
+            {{ doctor.cedula }}
+          </div>
         </td>
-        <td style="padding:14px 16px;text-align:center;">
-          {% if doctor.usuario %}
-            <div>
-              <span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;">✅ {{ doctor.usuario.username }}</span>
-            </div>
-          {% else %}
-            <span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;">⚠ Sin acceso</span>
+
+        <td>
+          <div style="font-size:13px; font-weight:600; color:#334155;">{{ doctor.telefono }}</div>
+          {% if doctor.email %}
+            <div style="font-size:12px; color:#94a3b8;">{{ doctor.email }}</div>
           {% endif %}
         </td>
-        <td style="padding:14px 16px;text-align:center;">
-          <div style="display:flex;gap:6px;justify-content:center;">
-            <a href="{% url 'doctores:editar' doctor.pk %}" style="padding:5px 12px;background:#f8fafc;color:#475569;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #e2e8f0;">✏️ Editar</a>
-            <form method="post" action="{% url 'doctores:eliminar' doctor.pk %}" onsubmit="return confirm('¿Eliminar al Dr. {{ doctor.apellidos }}? También se eliminará su usuario si tiene uno.')">
+
+        <td style="text-align:center;">
+          {% if doctor.usuario %}
+            <span class="access-badge access-active">
+              <span style="font-size: 8px;">●</span> {{ doctor.usuario.username }}
+            </span>
+          {% else %}
+            <span class="access-badge access-inactive">
+              <span style="font-size: 8px;">●</span> Sin acceso
+            </span>
+          {% endif %}
+        </td>
+
+        <td style="text-align:center;">
+          <div style="display:flex; gap:8px; justify-content:center;">
+            <a href="{% url 'doctores:editar' doctor.pk %}" class="btn-edit-doc" title="Editar Perfil">
+              ✏️ Editar
+            </a>
+            <form method="post" action="{% url 'doctores:eliminar' doctor.pk %}" onsubmit="return confirm('¿Está seguro de eliminar al Dr. {{ doctor.apellidos }}? Esta acción es irreversible.')">
               {% csrf_token %}
-              <button type="submit" style="padding:5px 12px;background:#fff;color:#dc2626;border-radius:6px;font-size:12px;font-weight:600;border:1px solid #fca5a5;cursor:pointer;">🗑</button>
+              <button type="submit" class="btn-delete-doc" title="Eliminar registro">
+                🗑️
+              </button>
             </form>
           </div>
         </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="6" style="padding:60px;text-align:center;color:#94a3b8;">
-          <div style="font-size:36px;margin-bottom:12px;">👨‍⚕️</div>
-          <div style="font-size:15px;">Sin doctores registrados</div>
-          <a href="{% url 'doctores:crear' %}" style="color:#0d9488;font-weight:600;font-size:13px;margin-top:8px;display:inline-block;">Registrar el primero</a>
+        <td colspan="6" style="padding: 80px 20px; text-align:center;">
+          <div style="font-size:48px; margin-bottom:15px; opacity: 0.3;">👨‍⚕️</div>
+          <p style="color:#64748b; font-weight: 600; font-size: 15px;">No hay doctores registrados en el sistema.</p>
+          <a href="{% url 'doctores:crear' %}" class="btn-primary" style="text-decoration: none; margin-top: 10px; display: inline-block;">Registrar el primer especialista</a>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+
+  {% if doctores %}
+    <div style="padding: 15px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+      Sullana Health — Gestión de Personal Médico
+    </div>
+  {% endif %}
 </div>
 {% endblock %}
