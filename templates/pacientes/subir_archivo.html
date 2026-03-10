@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Subir Archivo — {{ paciente.nombre_completo }}{% endblock %}
+{% block nav_pacientes %}active{% endblock %}
+{% block page_title %}Subir Archivo Clínico{% endblock %}
+{% block page_subtitle %}{{ paciente.nombre_completo }}{% endblock %}
+
+{% block header_actions %}
+  <a href="{% url 'pacientes:detalle' paciente.pk %}" class="btn-secondary">← Volver</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:500px;">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="card">
+      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
+        📎 Archivo Clínico
+      </h3>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label class="form-label">Tipo de archivo *</label>
+          <select name="tipo" class="form-input" required>
+            <option value="PDF">Documento PDF</option>
+            <option value="IMG">Imagen</option>
+            <option value="LAB">Resultado de Laboratorio</option>
+            <option value="RX">Radiografía</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Nombre descriptivo *</label>
+          <input type="text" name="nombre" class="form-input" required placeholder="Ej: Análisis de sangre enero 2025">
+        </div>
+        <div>
+          <label class="form-label">Archivo *</label>
+          <input type="file" name="archivo" class="form-input" required accept=".pdf,.jpg,.jpeg,.png,.gif">
+        </div>
+        <div>
+          <label class="form-label">Descripción</label>
+          <textarea name="descripcion" class="form-input" rows="3" placeholder="Observaciones sobre este archivo..."></textarea>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px;">
+        <button type="submit" class="btn-primary">📤 Subir archivo</button>
+        <a href="{% url 'pacientes:detalle' paciente.pk %}" class="btn-secondary">Cancelar</a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

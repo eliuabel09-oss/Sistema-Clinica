@@ -1,0 +1,27 @@
+# Entorno Virtual
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Configuración Sensible (Variables de entorno)
+.env
+
+# VS Code y Editores
+.vscode/
+.idea/
+*.swp
+*.bak
+
+# Otros
+.DS_Store

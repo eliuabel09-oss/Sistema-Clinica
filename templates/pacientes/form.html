@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}{% if paciente %}Editar{% else %}Nuevo{% endif %} Paciente — Sullana Health{% endblock %}
+{% block nav_pacientes %}active{% endblock %}
+{% block page_title %}{% if paciente %}Editar Paciente{% else %}Nuevo Paciente{% endif %}{% endblock %}
+{% block page_subtitle %}{% if paciente %}Actualizar datos de {{ paciente.nombre_completo }}{% else %}Registrar nuevo paciente{% endif %}{% endblock %}
+
+{% block header_actions %}
+  <a href="{% if paciente %}{% url 'pacientes:detalle' paciente.pk %}{% else %}{% url 'pacientes:lista' %}{% endif %}" class="btn-secondary">← Volver</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:860px;">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Datos personales -->
+    <div class="card" style="margin-bottom:16px;">
+      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
+        👤 Datos Personales
+      </h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <label class="form-label">Nombres *</label>
+          <input type="text" name="nombres" value="{{ form.nombres.value|default:'' }}" class="form-input" required placeholder="Ej: Juan Pablo">
+          {% if form.nombres.errors %}<div style="color:#dc2626;font-size:12px;margin-top:4px;">{{ form.nombres.errors.0 }}</div>{% endif %}
+        </div>
+        <div>
+          <label class="form-label">Apellidos *</label>
+          <input type="text" name="apellidos" value="{{ form.apellidos.value|default:'' }}" class="form-input" required placeholder="Ej: García López">
+          {% if form.apellidos.errors %}<div style="color:#dc2626;font-size:12px;margin-top:4px;">{{ form.apellidos.errors.0 }}</div>{% endif %}
+        </div>
+        <div>
+          <label class="form-label">Fecha de Nacimiento *</label>
+          <input type="date" name="fecha_nacimiento" value="{{ form.fecha_nacimiento.value|default:'' }}" class="form-input" required>
+        </div>
+        <div>
+          <label class="form-label">Sexo *</label>
+          <select name="sexo" class="form-input" required>
+            <option value="">Seleccionar...</option>
+            <option value="M" {% if form.sexo.value == 'M' %}selected{% endif %}>Masculino</option>
+            <option value="F" {% if form.sexo.value == 'F' %}selected{% endif %}>Femenino</option>
+            <option value="O" {% if form.sexo.value == 'O' %}selected{% endif %}>Otro</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">CURP</label>
+          <input type="text" name="curp" value="{{ form.curp.value|default:'' }}" class="form-input" placeholder="18 caracteres" maxlength="18" style="text-transform:uppercase;">
+        </div>
+        <div>
+          <label class="form-label">Tipo de Sangre</label>
+          <select name="tipo_sangre" class="form-input">
+            <option value="">Desconocido</option>
+            {% for val, label in form.tipo_sangre.field.choices %}
+              {% if val %}
+              <option value="{{ val }}" {% if form.tipo_sangre.value == val %}selected{% endif %}>{{ label }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contacto -->
+    <div class="card" style="margin-bottom:16px;">
+      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
+        📞 Contacto
+      </h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <label class="form-label">Teléfono *</label>
+          <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}" class="form-input" required placeholder="Ej: 555-2001">
+        </div>
+        <div>
+          <label class="form-label">Email</label>
+          <input type="email" name="email" value="{{ form.email.value|default:'' }}" class="form-input" placeholder="correo@ejemplo.com">
+        </div>
+        <div style="grid-column:span 2;">
+          <label class="form-label">Dirección</label>
+          <input type="text" name="direccion" value="{{ form.direccion.value|default:'' }}" class="form-input" placeholder="Calle, colonia, ciudad">
+        </div>
+      </div>
+    </div>
+
+    <!-- Información médica -->
+    <div class="card" style="margin-bottom:20px;">
+      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
+        🏥 Información Médica
+      </h3>
+      <div style="display:grid;gap:16px;">
+        <div>
+          <label class="form-label">Alergias conocidas</label>
+          <textarea name="alergias" class="form-input" rows="2" placeholder="Ej: Penicilina, aspirina...">{{ form.alergias.value|default:'' }}</textarea>
+        </div>
+        <div>
+          <label class="form-label">Enfermedades crónicas</label>
+          <textarea name="enfermedades_cronicas" class="form-input" rows="2" placeholder="Ej: Diabetes tipo 2, hipertensión...">{{ form.enfermedades_cronicas.value|default:'' }}</textarea>
+        </div>
+        <div>
+          <label class="form-label">Antecedentes heredofamiliares</label>
+          <textarea name="antecedentes" class="form-input" rows="2" placeholder="Ej: Padre con diabetes, madre con hipertensión...">{{ form.antecedentes.value|default:'' }}</textarea>
+        </div>
+        <div>
+          <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" name="activo" {% if form.activo.value %}checked{% endif %} style="width:16px;height:16px;accent-color:#0d9488;">
+            Paciente activo
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div style="display:flex;gap:10px;">
+      <button type="submit" class="btn-primary" style="padding:10px 28px;font-size:15px;">
+        {% if paciente %}💾 Guardar cambios{% else %}✅ Registrar paciente{% endif %}
+      </button>
+      <a href="{% if paciente %}{% url 'pacientes:detalle' paciente.pk %}{% else %}{% url 'pacientes:lista' %}{% endif %}" class="btn-secondary" style="padding:10px 20px;">
+        Cancelar
+      </a>
+      {% if paciente %}
+      <form method="post" action="{% url 'pacientes:eliminar' paciente.pk %}" style="margin-left:auto;" onsubmit="return confirm('¿Eliminar este paciente?')">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger" style="padding:10px 18px;">🗑 Eliminar</button>
+      </form>
+      {% endif %}
+    </div>
+
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Sullana Health{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/output.css' %}">
+  <style>
+    * { font-family: 'DM Sans', sans-serif; }
+    .brand { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .sidebar { width: 260px; min-height: 100vh; background: #fff; border-right: 1px solid #e2e8f0; flex-shrink:0; }
+    .sidebar-link { display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:8px; margin:2px 8px; color:#475569; font-size:14px; font-weight:500; text-decoration:none; transition:all .15s; }
+    .sidebar-link:hover { background:#f0fdfa; color:#0d9488; }
+    .sidebar-link.active { background:#ccfbf1; color:#0f766e; font-weight:600; }
+    .sidebar-section { padding:0 16px; margin:16px 0 6px; font-size:11px; font-weight:700; color:#94a3b8; letter-spacing:.08em; text-transform:uppercase; }
+    .card { background:#fff; border-radius:12px; border:1px solid #e2e8f0; padding:24px; }
+    .stat-card { background:#fff; border-radius:12px; border:1px solid #e2e8f0; padding:20px; }
+    .badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:99px; font-size:12px; font-weight:600; }
+    .badge-pendiente  { background:#fef3c7; color:#92400e; }
+    .badge-confirmada { background:#d1fae5; color:#065f46; }
+    .badge-cancelada  { background:#fee2e2; color:#991b1b; }
+    .badge-completada { background:#dbeafe; color:#1e40af; }
+    .badge-no_asistio { background:#f1f5f9; color:#475569; }
+    .btn-primary { background:#0d9488; color:#fff; padding:8px 18px; border-radius:8px; font-size:14px; font-weight:600; border:none; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:background .15s; }
+    .btn-primary:hover { background:#0f766e; }
+    .btn-secondary { background:#f8fafc; color:#475569; padding:8px 18px; border-radius:8px; font-size:14px; font-weight:500; border:1px solid #e2e8f0; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:all .15s; }
+    .btn-secondary:hover { background:#f1f5f9; }
+    .btn-danger { background:#fff; color:#dc2626; padding:8px 18px; border-radius:8px; font-size:14px; font-weight:500; border:1px solid #fca5a5; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:all .15s; }
+    .btn-danger:hover { background:#fee2e2; }
+    .form-label { display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; }
+    .form-input { width:100%; padding:9px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; color:#111827; background:#fff; outline:none; transition:border-color .15s, box-shadow .15s; }
+    .form-input:focus { border-color:#0d9488; box-shadow:0 0 0 3px rgba(13,148,136,.12); }
+    .table-header { background:#f8fafc; }
+    .table-row:hover { background:#f8fafc; }
+    .alert-success { background:#d1fae5; border:1px solid #a7f3d0; color:#065f46; padding:12px 16px; border-radius:8px; margin-bottom:16px; }
+    .alert-error   { background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:12px 16px; border-radius:8px; margin-bottom:16px; }
+  </style>
+</head>
+<body style="background:#f8fafc; display:flex;">
+
+{% with rol=request.user.perfil.rol|default:"ADMIN" %}
+
+  <aside class="sidebar" style="display:flex;flex-direction:column;">
+    <!-- Logo -->
+    <div style="padding:24px;border-bottom:1px solid #f1f5f9;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;background:#0d9488;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+          <span style="color:#fff;font-size:18px;">🏥</span>
+        </div>
+        <div>
+          <div class="brand" style="font-size:15px;font-weight:700;color:#134e4a;line-height:1.2;">Sullana</div>
+          <div style="font-size:11px;color:#64748b;font-weight:500;">Health System</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rol badge -->
+    <div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;">
+      {% if request.user.is_superuser or rol == 'ADMIN' %}
+        <span style="background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;">⭐ Administrador</span>
+      {% elif rol == 'DOCTOR' %}
+        <span style="background:#dbeafe;color:#1e40af;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;">👨‍⚕️ Doctor</span>
+      {% else %}
+        <span style="background:#f1f5f9;color:#475569;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;">📋 Secretaria</span>
+      {% endif %}
+    </div>
+
+    <nav style="flex:1;padding:12px 0;">
+
+      <!-- DOCTOR: solo ve su perfil y citas -->
+      {% if rol == 'DOCTOR' and not request.user.is_superuser %}
+        <div class="sidebar-section">Mi espacio</div>
+        <a href="{% url 'doctores:mi_perfil' %}" class="sidebar-link {% block nav_mi_perfil %}{% endblock %}">
+          <span>👨‍⚕️</span> Mi Perfil
+        </a>
+        <a href="{% url 'citas:lista' %}" class="sidebar-link {% block nav_citas %}{% endblock %}">
+          <span>📅</span> Mis Citas
+        </a>
+        <a href="{% url 'pacientes:lista' %}" class="sidebar-link {% block nav_pacientes %}{% endblock %}">
+          <span>👤</span> Mis Pacientes
+        </a>
+
+      <!-- ADMIN y SECRETARIA -->
+      {% else %}
+        <div class="sidebar-section">Principal</div>
+        <a href="{% url 'dashboard' %}" class="sidebar-link {% block nav_dashboard %}{% endblock %}">
+          <span>📊</span> Panel del Administrador
+        </a>
+
+        <div class="sidebar-section">Módulos</div>
+        <a href="{% url 'pacientes:lista' %}" class="sidebar-link {% block nav_pacientes2 %}{% endblock %}">
+          <span>👤</span> Pacientes
+        </a>
+        <a href="{% url 'citas:lista' %}" class="sidebar-link {% block nav_citas2 %}{% endblock %}">
+          <span>📅</span> Citas
+        </a>
+        <a href="{% url 'consultas:lista' %}" class="sidebar-link {% block nav_consultas %}{% endblock %}">
+          <span>📋</span> Consultas
+        </a>
+
+        <!-- Solo Admin ve Doctores -->
+        {% if request.user.is_superuser or rol == 'ADMIN' %}
+        <div class="sidebar-section">Administración</div>
+        <a href="{% url 'doctores:lista' %}" class="sidebar-link {% block nav_doctores %}{% endblock %}">
+          <span>👨‍⚕️</span> Doctores
+        </a>
+        <a href="{% url 'usuarios:lista' %}" class="sidebar-link {% block nav_usuarios %}{% endblock %}">
+          <span>👥</span> Usuarios
+        </a>
+        {% endif %}
+      {% endif %}
+
+    </nav>
+
+    <!-- Usuario + Logout -->
+    <div style="padding:16px;border-top:1px solid #f1f5f9;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:34px;height:34px;background:#ccfbf1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">
+          {% if rol == 'DOCTOR' %}👨‍⚕️{% elif rol == 'ADMIN' %}⭐{% else %}📋{% endif %}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            {{ request.user.get_full_name|default:request.user.username }}
+          </div>
+          <div style="font-size:11px;color:#94a3b8;">{{ request.user.username }}</div>
+        </div>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" style="background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8;" title="Cerrar sesión">↩</button>
+        </form>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div style="flex:1;overflow-x:hidden;">
+    <header style="background:#fff;border-bottom:1px solid #e2e8f0;padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;">
+      <div>
+        <h2 class="brand" style="font-size:17px;font-weight:700;color:#134e4a;">{% block page_title %}Dashboard{% endblock %}</h2>
+        <div style="font-size:12px;color:#94a3b8;">{% block page_subtitle %}{% endblock %}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">{% block header_actions %}{% endblock %}</div>
+    </header>
+
+    <div style="padding:0 28px;">
+      {% for message in messages %}
+        <div class="{% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %} mt-4">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+
+    <main style="padding:24px 28px;">{% block content %}{% endblock %}</main>
+  </div>
+
+{% endwith %}
+</body>
+</html>

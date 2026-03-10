@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block title %}Nueva Consulta — Sullana Health{% endblock %}
+{% block nav_consultas %}active{% endblock %}
+{% block page_title %}Nueva Consulta{% endblock %}
+{% block page_subtitle %}Registrar nota clínica y recetas{% endblock %}
+
+{% block header_actions %}
+  <a href="{% url 'consultas:lista' %}" class="btn-secondary">← Volver</a>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+  {% csrf_token %}
+  <div style="display:grid;grid-template-columns:1fr 360px;gap:20px;">
+
+    <!-- Columna principal -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Datos generales -->
+      <div class="card">
+        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">📋 Datos Generales</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div style="grid-column:span 2;">
+            <label class="form-label">Paciente *</label>
+            <select name="paciente" class="form-input" required>
+              <option value="">Seleccionar paciente...</option>
+              {% for p in pacientes %}
+              <option value="{{ p.pk }}" {% if form.paciente.value|stringformat:"s" == p.pk|stringformat:"s" or request.GET.paciente == p.pk|stringformat:"s" %}selected{% endif %}>
+                {{ p.nombre_completo }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="grid-column:span 2;">
+            <label class="form-label">Doctor *</label>
+            <select name="doctor" class="form-input" required>
+              <option value="">Seleccionar doctor...</option>
+              {% for d in doctores %}
+              <option value="{{ d.pk }}" {% if form.doctor.value|stringformat:"s" == d.pk|stringformat:"s" %}selected{% endif %}>
+                Dr. {{ d.apellidos }}, {{ d.nombres }} — {{ d.especialidad }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="grid-column:span 2;">
+            <label class="form-label">Cita asociada (opcional)</label>
+            <select name="cita" class="form-input">
+              <option value="">Sin cita asociada</option>
+              {% for c in citas_disponibles %}
+              <option value="{{ c.pk }}" {% if form.cita.value|stringformat:"s" == c.pk|stringformat:"s" %}selected{% endif %}>
+                {{ c.fecha_hora|date:"d/m/Y H:i" }} — {{ c.paciente.nombre_completo }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signos vitales -->
+      <div class="card">
+        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">📊 Signos Vitales</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div>
+            <label class="form-label">Peso (kg)</label>
+            <input type="number" name="peso_kg" value="{{ form.peso_kg.value|default:'' }}" class="form-input" step="0.1" placeholder="70.5">
+          </div>
+          <div>
+            <label class="form-label">Talla (cm)</label>
+            <input type="number" name="talla_cm" value="{{ form.talla_cm.value|default:'' }}" class="form-input" step="0.1" placeholder="170">
+          </div>
+          <div>
+            <label class="form-label">Temperatura (°C)</label>
+            <input type="number" name="temperatura" value="{{ form.temperatura.value|default:'' }}" class="form-input" step="0.1" placeholder="36.6">
+          </div>
+          <div>
+            <label class="form-label">Presión Arterial</label>
+            <input type="text" name="presion_arterial" value="{{ form.presion_arterial.value|default:'' }}" class="form-input" placeholder="120/80">
+          </div>
+          <div>
+            <label class="form-label">F. Cardíaca (lpm)</label>
+            <input type="number" name="frecuencia_cardiaca" value="{{ form.frecuencia_cardiaca.value|default:'' }}" class="form-input" placeholder="72">
+          </div>
+          <div>
+            <label class="form-label">Saturación O2 (%)</label>
+            <input type="number" name="saturacion_o2" value="{{ form.saturacion_o2.value|default:'' }}" class="form-input" placeholder="98">
+          </div>
+        </div>
+      </div>
+
+      <!-- Nota SOAP -->
+      <div class="card">
+        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">📝 Nota Clínica SOAP</h3>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label class="form-label" style="color:#0369a1;">S — Subjetivo</label>
+            <textarea name="subjetivo" class="form-input" rows="3" required placeholder="Motivo de consulta y síntomas referidos por el paciente...">{{ form.subjetivo.value|default:'' }}</textarea>
+          </div>
+          <div>
+            <label class="form-label" style="color:#0d9488;">O — Objetivo</label>
+            <textarea name="objetivo" class="form-input" rows="3" required placeholder="Exploración física y hallazgos clínicos...">{{ form.objetivo.value|default:'' }}</textarea>
+          </div>
+          <div>
+            <label class="form-label" style="color:#7c3aed;">A — Diagnóstico</label>
+            <textarea name="diagnostico" class="form-input" rows="3" required placeholder="Diagnóstico (puedes incluir código CIE-10)...">{{ form.diagnostico.value|default:'' }}</textarea>
+          </div>
+          <div>
+            <label class="form-label" style="color:#d97706;">P — Plan</label>
+            <textarea name="plan" class="form-input" rows="3" required placeholder="Plan de tratamiento y recomendaciones...">{{ form.plan.value|default:'' }}</textarea>
+          </div>
+          <div>
+            <label class="form-label">Evolución / Notas adicionales</label>
+            <textarea name="evolucion" class="form-input" rows="2" placeholder="Observaciones adicionales...">{{ form.evolucion.value|default:'' }}</textarea>
+          </div>
+          <div>
+            <label class="form-label">Próxima cita sugerida</label>
+            <input type="date" name="proxima_cita" value="{{ form.proxima_cita.value|default:'' }}" class="form-input" style="max-width:200px;">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Columna recetas -->
+    <div>
+      <div class="card" style="position:sticky;top:80px;">
+        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px;">💊 Recetas</h3>
+        <div id="recetas-container">
+          <div class="receta-item" style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:10px;border:1px solid #e2e8f0;">
+            <input type="text" name="medicamento[]" class="form-input" placeholder="Medicamento" style="margin-bottom:6px;" required>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+              <input type="text" name="dosis[]" class="form-input" placeholder="Dosis (ej: 500mg)">
+              <input type="text" name="frecuencia[]" class="form-input" placeholder="Frecuencia">
+            </div>
+            <input type="text" name="duracion[]" class="form-input" placeholder="Duración (ej: 7 días)" style="margin-bottom:6px;">
+            <textarea name="indicaciones[]" class="form-input" rows="2" placeholder="Indicaciones especiales..."></textarea>
+          </div>
+        </div>
+        <button type="button" onclick="agregarReceta()" class="btn-secondary" style="width:100%;justify-content:center;margin-top:6px;">
+          + Agregar otro medicamento
+        </button>
+
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;">
+          <button type="submit" class="btn-primary" style="width:100%;justify-content:center;padding:12px;">
+            ✅ Guardar Consulta
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</form>
+
+<script>
+function agregarReceta() {
+  const container = document.getElementById('recetas-container');
+  const div = document.createElement('div');
+  div.className = 'receta-item';
+  div.style.cssText = 'background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:10px;border:1px solid #e2e8f0;position:relative;';
+  div.innerHTML = `
+    <button type="button" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:8px;background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;">✕</button>
+    <input type="text" name="medicamento[]" class="form-input" placeholder="Medicamento" style="margin-bottom:6px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+      <input type="text" name="dosis[]" class="form-input" placeholder="Dosis">
+      <input type="text" name="frecuencia[]" class="form-input" placeholder="Frecuencia">
+    </div>
+    <input type="text" name="duracion[]" class="form-input" placeholder="Duración" style="margin-bottom:6px;">
+    <textarea name="indicaciones[]" class="form-input" rows="2" placeholder="Indicaciones..."></textarea>
+  `;
+  container.appendChild(div);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Mi Perfil — Dr. {{ doctor.apellidos }}{% endblock %}
+{% block nav_mi_perfil %}active{% endblock %}
+{% block page_title %}Mi Perfil{% endblock %}
+{% block page_subtitle %}Panel del Doctor{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:300px 1fr;gap:20px;">
+
+  <!-- Columna izquierda — info del doctor -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <div class="card" style="text-align:center;">
+      {% if doctor.foto %}
+        <img src="{{ doctor.foto.url }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 12px;display:block;border:3px solid #ccfbf1;">
+      {% else %}
+        <div style="width:80px;height:80px;background:#ccfbf1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;">👨‍⚕️</div>
+      {% endif %}
+      <div class="brand" style="font-size:18px;font-weight:700;color:#1e293b;">Dr. {{ doctor.nombre_completo }}</div>
+      <div style="margin-top:6px;">
+        <span style="background:#f0fdfa;color:#0f766e;padding:4px 14px;border-radius:99px;font-size:13px;font-weight:600;">{{ doctor.especialidad }}</span>
+      </div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:8px;">Cédula: {{ doctor.cedula }}</div>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="card" style="padding:16px;text-align:center;">
+        <div class="brand" style="font-size:28px;font-weight:700;color:#134e4a;">{{ total_citas }}</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Citas totales</div>
+      </div>
+      <div class="card" style="padding:16px;text-align:center;">
+        <div class="brand" style="font-size:28px;font-weight:700;color:#0d9488;">{{ citas_hoy }}</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Citas hoy</div>
+      </div>
+      <div class="card" style="padding:16px;text-align:center;">
+        <div class="brand" style="font-size:28px;font-weight:700;color:#1e40af;">{{ citas_completadas }}</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Completadas</div>
+      </div>
+      <div class="card" style="padding:16px;text-align:center;">
+        <div class="brand" style="font-size:28px;font-weight:700;color:#7c3aed;">{{ pacientes_atendidos.count }}</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Pacientes</div>
+      </div>
+    </div>
+
+    <!-- Info de contacto -->
+    <div class="card">
+      <h4 class="brand" style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">Contacto</h4>
+      {% if doctor.telefono %}
+      <div style="font-size:13px;color:#475569;margin-bottom:6px;">📞 {{ doctor.telefono }}</div>
+      {% endif %}
+      {% if doctor.email %}
+      <div style="font-size:13px;color:#475569;margin-bottom:6px;">✉️ {{ doctor.email }}</div>
+      {% endif %}
+      {% if doctor.horario_atencion %}
+      <div style="font-size:13px;color:#475569;">🕐 {{ doctor.horario_atencion }}</div>
+      {% endif %}
+    </div>
+
+    {% if doctor.biografia %}
+    <div class="card">
+      <h4 class="brand" style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Presentación</h4>
+      <p style="font-size:13px;color:#475569;line-height:1.6;">{{ doctor.biografia }}</p>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Columna derecha -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Próximas citas -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;">📅 Próximas Citas</h3>
+        <a href="{% url 'citas:lista' %}" class="btn-secondary" style="font-size:12px;padding:5px 12px;">Ver todas</a>
+      </div>
+
+      {% for cita in proximas_citas %}
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid #f1f5f9;">
+        <div style="width:46px;height:46px;background:#f0fdfa;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+          <div style="font-size:14px;font-weight:700;color:#0d9488;line-height:1;">{{ cita.fecha_hora|date:"d" }}</div>
+          <div style="font-size:10px;color:#64748b;text-transform:uppercase;">{{ cita.fecha_hora|date:"M" }}</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:600;color:#1e293b;">{{ cita.paciente.nombre_completo }}</div>
+          <div style="font-size:12px;color:#64748b;">{{ cita.fecha_hora|date:"H:i" }} · {{ cita.get_tipo_display }}</div>
+          {% if cita.motivo %}<div style="font-size:12px;color:#94a3b8;margin-top:2px;">{{ cita.motivo|truncatechars:60 }}</div>{% endif %}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+          <span class="badge badge-{{ cita.estado|lower }}">{{ cita.get_estado_display }}</span>
+          <a href="{% url 'doctores:informe' cita.pk %}" style="font-size:11px;color:#0d9488;font-weight:600;text-decoration:none;">
+            {% if cita.informe_doctor %}✏️ Editar informe{% else %}📝 Escribir informe{% endif %}
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:30px;color:#94a3b8;">
+        <div style="font-size:28px;margin-bottom:8px;">📅</div>
+        <div>No tienes citas próximas</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pacientes atendidos -->
+    <div class="card">
+      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:18px;">👤 Mis Pacientes</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
+        {% for paciente in pacientes_atendidos %}
+        <a href="{% url 'pacientes:detalle' paciente.pk %}" style="display:flex;align-items:center;gap:10px;padding:10px;background:#f8fafc;border-radius:8px;border:1px solid #f1f5f9;text-decoration:none;">
+          <div style="width:36px;height:36px;background:{% if paciente.sexo == 'M' %}#dbeafe{% else %}#fce7f3{% endif %};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">
+            {% if paciente.sexo == 'M' %}👨{% else %}👩{% endif %}
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1e293b;">{{ paciente.nombre_completo }}</div>
+            <div style="font-size:11px;color:#94a3b8;">{{ paciente.edad }} años</div>
+          </div>
+        </a>
+        {% empty %}
+        <div style="grid-column:span 2;text-align:center;padding:20px;color:#94a3b8;font-size:13px;">
+          Aún no has atendido pacientes
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

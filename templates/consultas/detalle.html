@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Consulta #{{ consulta.pk }} — Sullana Health{% endblock %}
+{% block nav_consultas %}active{% endblock %}
+{% block page_title %}Consulta Médica{% endblock %}
+{% block page_subtitle %}{{ consulta.paciente.nombre_completo }} · {{ consulta.fecha|date:"d/m/Y H:i" }}{% endblock %}
+
+{% block header_actions %}
+  <a href="{% url 'consultas:lista' %}" class="btn-secondary">← Volver</a>
+  <a href="{% url 'pacientes:detalle' consulta.paciente.pk %}" class="btn-secondary">👤 Ver Paciente</a>
+{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 300px;gap:20px;">
+
+  <!-- Nota SOAP -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Signos vitales -->
+    {% if consulta.peso_kg or consulta.presion_arterial or consulta.temperatura %}
+    <div class="card">
+      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px;">📊 Signos Vitales</h3>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+        {% if consulta.peso_kg %}
+        <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:10px;">
+          <div style="font-size:22px;font-weight:700;color:#134e4a;">{{ consulta.peso_kg }}</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">kg · Peso</div>
+          {% if consulta.imc %}<div style="font-size:11px;color:#0d9488;font-weight:600;margin-top:4px;">IMC: {{ consulta.imc }}</div>{% endif %}
+        </div>
+        {% endif %}
+        {% if consulta.presion_arterial %}
+        <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:10px;">
+          <div style="font-size:22px;font-weight:700;color:#134e4a;">{{ consulta.presion_arterial }}</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">mmHg · Presión</div>
+        </div>
+        {% endif %}
+        {% if consulta.temperatura %}
+        <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:10px;">
+          <div style="font-size:22px;font-weight:700;color:#134e4a;">{{ consulta.temperatura }}°</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">°C · Temperatura</div>
+        </div>
+        {% endif %}
+        {% if consulta.frecuencia_cardiaca %}
+        <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:10px;">
+          <div style="font-size:22px;font-weight:700;color:#134e4a;">{{ consulta.frecuencia_cardiaca }}</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">lpm · F. Cardiaca</div>
+        </div>
+        {% endif %}
+        {% if consulta.saturacion_o2 %}
+        <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:10px;">
+          <div style="font-size:22px;font-weight:700;color:#134e4a;">{{ consulta.saturacion_o2 }}%</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">SpO2 · Saturación</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Nota SOAP -->
+    <div class="card">
+      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px;">📝 Nota Clínica SOAP</h3>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        {% for label, color, val in soap_fields %}
+        <div>
+          <div style="font-size:11px;font-weight:700;color:{{ color }};text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">{{ label }}</div>
+          <div style="font-size:14px;color:#374151;background:#f8fafc;padding:12px;border-radius:8px;border-left:3px solid {{ color }};line-height:1.6;">{{ val }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Columna derecha -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Info general -->
+    <div class="card">
+      <h3 class="brand" style="font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;">Información</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <div style="font-size:11px;color:#94a3b8;font-weight:600;">Paciente</div>
+          <a href="{% url 'pacientes:detalle' consulta.paciente.pk %}" style="font-size:14px;font-weight:500;color:#0d9488;text-decoration:none;">{{ consulta.paciente.nombre_completo }}</a>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#94a3b8;font-weight:600;">Doctor</div>
+          <div style="font-size:14px;color:#1e293b;">Dr. {{ consulta.doctor.apellidos }}, {{ consulta.doctor.nombres }}</div>
+          <div style="font-size:12px;color:#64748b;">{{ consulta.doctor.especialidad }}</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#94a3b8;font-weight:600;">Fecha</div>
+          <div style="font-size:14px;color:#1e293b;">{{ consulta.fecha|date:"d/m/Y H:i" }}</div>
+        </div>
+        {% if consulta.proxima_cita %}
+        <div>
+          <div style="font-size:11px;color:#94a3b8;font-weight:600;">Próxima cita</div>
+          <div style="font-size:14px;color:#0d9488;font-weight:600;">{{ consulta.proxima_cita|date:"d/m/Y" }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Recetas -->
+    <div class="card">
+      <h3 class="brand" style="font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;">💊 Recetas ({{ consulta.recetas.count }})</h3>
+      {% for receta in consulta.recetas.all %}
+      <div style="padding:10px;background:#f0fdf4;border-radius:8px;margin-bottom:8px;border:1px solid #bbf7d0;">
+        <div style="font-size:14px;font-weight:600;color:#14532d;">{{ receta.medicamento }}</div>
+        <div style="font-size:12px;color:#16a34a;margin-top:2px;">{{ receta.dosis }} · {{ receta.frecuencia }}</div>
+        <div style="font-size:12px;color:#64748b;">Duración: {{ receta.duracion }}</div>
+        {% if receta.indicaciones %}<div style="font-size:12px;color:#64748b;margin-top:4px;font-style:italic;">{{ receta.indicaciones }}</div>{% endif %}
+      </div>
+      {% empty %}
+      <div style="font-size:13px;color:#94a3b8;text-align:center;padding:12px 0;">Sin medicamentos recetados</div>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

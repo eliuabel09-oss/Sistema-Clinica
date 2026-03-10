@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}{% if cita %}Editar Cita{% else %}Nueva Cita{% endif %} — Sullana Health{% endblock %}
+{% block nav_citas %}active{% endblock %}
+{% block page_title %}{% if cita %}Editar Cita{% else %}Nueva Cita{% endif %}{% endblock %}
+{% block page_subtitle %}{% if cita %}Modificar datos de la cita{% else %}Registrar nueva cita médica{% endif %}{% endblock %}
+
+{% block header_actions %}
+  <a href="{% url 'citas:lista' %}" class="btn-secondary">← Volver</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:700px;">
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="card" style="margin-bottom:16px;">
+      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
+        📅 Datos de la Cita
+      </h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+        <div style="grid-column:span 2;">
+          <label class="form-label">Paciente *</label>
+          <select name="paciente" class="form-input" required>
+            <option value="">Seleccionar paciente...</option>
+            {% for p in pacientes %}
+            <option value="{{ p.pk }}" {% if form.paciente.value|stringformat:"s" == p.pk|stringformat:"s" or request.GET.paciente == p.pk|stringformat:"s" %}selected{% endif %}>
+              {{ p.nombre_completo }} — {{ p.telefono }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="grid-column:span 2;">
+          <label class="form-label">Doctor *</label>
+          <select name="doctor" class="form-input" required>
+            <option value="">Seleccionar doctor...</option>
+            {% for d in doctores %}
+            <option value="{{ d.pk }}" {% if form.doctor.value|stringformat:"s" == d.pk|stringformat:"s" %}selected{% endif %}>
+              Dr. {{ d.apellidos }}, {{ d.nombres }} — {{ d.especialidad }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label">Fecha y Hora *</label>
+          <input type="datetime-local" name="fecha_hora" value="{{ form.fecha_hora.value|default:'' }}" class="form-input" required>
+        </div>
+
+        <div>
+          <label class="form-label">Duración (minutos)</label>
+          <input type="number" name="duracion_min" value="{{ form.duracion_min.value|default:'30' }}" class="form-input" min="10" max="180" step="5">
+        </div>
+
+        <div>
+          <label class="form-label">Tipo de Cita *</label>
+          <select name="tipo" class="form-input" required>
+            <option value="PRIMERA_VEZ"  {% if form.tipo.value == 'PRIMERA_VEZ' %}selected{% endif %}>Primera vez</option>
+            <option value="SEGUIMIENTO"  {% if form.tipo.value == 'SEGUIMIENTO' %}selected{% endif %}>Seguimiento</option>
+            <option value="URGENCIA"     {% if form.tipo.value == 'URGENCIA' %}selected{% endif %}>Urgencia</option>
+            <option value="REVISION"     {% if form.tipo.value == 'REVISION' %}selected{% endif %}>Revisión de resultados</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label">Estado</label>
+          <select name="estado" class="form-input">
+            <option value="PENDIENTE"  {% if form.estado.value == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+            <option value="CONFIRMADA" {% if form.estado.value == 'CONFIRMADA' %}selected{% endif %}>Confirmada</option>
+            <option value="CANCELADA"  {% if form.estado.value == 'CANCELADA' %}selected{% endif %}>Cancelada</option>
+            <option value="COMPLETADA" {% if form.estado.value == 'COMPLETADA' %}selected{% endif %}>Completada</option>
+            <option value="NO_ASISTIO" {% if form.estado.value == 'NO_ASISTIO' %}selected{% endif %}>No asistió</option>
+          </select>
+        </div>
+
+        <div style="grid-column:span 2;">
+          <label class="form-label">Motivo de consulta</label>
+          <textarea name="motivo" class="form-input" rows="3" placeholder="Describe el motivo de la cita...">{{ form.motivo.value|default:'' }}</textarea>
+        </div>
+
+        <div style="grid-column:span 2;">
+          <label class="form-label">Notas internas</label>
+          <textarea name="notas_admin" class="form-input" rows="2" placeholder="Notas del área administrativa (no visibles al paciente)...">{{ form.notas_admin.value|default:'' }}</textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button type="submit" class="btn-primary" style="padding:10px 28px;font-size:15px;">
+        {% if cita %}💾 Guardar cambios{% else %}✅ Crear cita{% endif %}
+      </button>
+      <a href="{% url 'citas:lista' %}" class="btn-secondary" style="padding:10px 20px;">Cancelar</a>
+      {% if cita %}
+      <form method="post" action="{% url 'citas:eliminar' cita.pk %}" style="margin-left:auto;" onsubmit="return confirm('¿Eliminar esta cita?')">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger" style="padding:10px 18px;">🗑 Eliminar</button>
+      </form>
+      {% endif %}
+    </div>
+
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Citas — Sullana Health{% endblock %}
+{% block nav_citas %}active{% endblock %}
+{% block page_title %}Citas{% endblock %}
+{% block page_subtitle %}Agenda y gestión de citas{% endblock %}
+
+{% block header_actions %}
+  <a href="{% url 'citas:crear' %}" class="btn-primary">➕ Nueva Cita</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filtros -->
+<div class="card" style="margin-bottom:20px;">
+  <form method="get" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px;">
+      <label class="form-label">Buscar</label>
+      <input type="text" name="q" value="{{ request.GET.q }}" class="form-input" placeholder="Paciente o doctor...">
+    </div>
+    <div style="width:160px;">
+      <label class="form-label">Estado</label>
+      <select name="estado" class="form-input">
+        <option value="">Todos</option>
+        <option value="PENDIENTE"  {% if request.GET.estado == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+        <option value="CONFIRMADA" {% if request.GET.estado == 'CONFIRMADA' %}selected{% endif %}>Confirmada</option>
+        <option value="CANCELADA"  {% if request.GET.estado == 'CANCELADA' %}selected{% endif %}>Cancelada</option>
+        <option value="COMPLETADA" {% if request.GET.estado == 'COMPLETADA' %}selected{% endif %}>Completada</option>
+      </select>
+    </div>
+    <div style="width:160px;">
+      <label class="form-label">Fecha</label>
+      <input type="date" name="fecha" value="{{ request.GET.fecha }}" class="form-input">
+    </div>
+    <button type="submit" class="btn-primary">🔍 Filtrar</button>
+    {% if request.GET.q or request.GET.estado or request.GET.fecha %}
+      <a href="{% url 'citas:lista' %}" class="btn-secondary">✕ Limpiar</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Tabla de citas -->
+<div class="card" style="padding:0;overflow:hidden;">
+  <table style="width:100%;border-collapse:collapse;">
+    <thead class="table-header">
+      <tr>
+        <th style="padding:12px 20px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Fecha y Hora</th>
+        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Paciente</th>
+        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Doctor</th>
+        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Tipo</th>
+        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Estado</th>
+        <th style="padding:12px 16px;text-align:center;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cita in citas %}
+      <tr class="table-row" style="border-bottom:1px solid #f1f5f9;">
+        <td style="padding:14px 20px;">
+          <div style="font-size:14px;font-weight:600;color:#1e293b;">{{ cita.fecha_hora|date:"d/m/Y" }}</div>
+          <div style="font-size:12px;color:#64748b;">{{ cita.fecha_hora|date:"H:i" }} · {{ cita.duracion_min }} min</div>
+        </td>
+        <td style="padding:14px 16px;">
+          <a href="{% url 'pacientes:detalle' cita.paciente.pk %}" style="font-size:14px;font-weight:500;color:#0d9488;text-decoration:none;">
+            {{ cita.paciente.nombre_completo }}
+          </a>
+        </td>
+        <td style="padding:14px 16px;font-size:14px;color:#475569;">Dr. {{ cita.doctor.apellidos }}</td>
+        <td style="padding:14px 16px;">
+          <span style="font-size:13px;color:#64748b;">{{ cita.get_tipo_display }}</span>
+        </td>
+        <td style="padding:14px 16px;">
+          <span class="badge badge-{{ cita.estado|lower }}">{{ cita.get_estado_display }}</span>
+        </td>
+        <td style="padding:14px 16px;text-align:center;">
+          <div style="display:flex;gap:6px;justify-content:center;">
+            <a href="{% url 'citas:editar' cita.pk %}" style="padding:5px 10px;background:#f8fafc;color:#475569;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #e2e8f0;">Editar</a>
+            {% if cita.estado == 'PENDIENTE' %}
+            <a href="{% url 'citas:cambiar_estado' cita.pk %}?estado=CONFIRMADA" style="padding:5px 10px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">✓ Confirmar</a>
+            {% endif %}
+            {% if cita.estado != 'CANCELADA' and cita.estado != 'COMPLETADA' %}
+            <a href="{% url 'citas:cambiar_estado' cita.pk %}?estado=CANCELADA" style="padding:5px 10px;background:#fee2e2;color:#991b1b;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;" onclick="return confirm('¿Cancelar esta cita?')">✕</a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="padding:60px;text-align:center;color:#94a3b8;">
+          <div style="font-size:36px;margin-bottom:12px;">📅</div>
+          <div style="font-size:15px;font-weight:500;">No hay citas registradas</div>
+          <div style="margin-top:8px;">
+            <a href="{% url 'citas:crear' %}" style="color:#0d9488;font-weight:600;font-size:13px;">Crear la primera cita</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if citas.has_other_pages %}
+  <div style="padding:16px 20px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-size:13px;color:#64748b;">{{ citas.paginator.count }} citas en total</span>
+    <div style="display:flex;gap:4px;">
+      {% if citas.has_previous %}
+        <a href="?page={{ citas.previous_page_number }}" style="padding:5px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;color:#475569;text-decoration:none;">← Anterior</a>
+      {% endif %}
+      {% if citas.has_next %}
+        <a href="?page={{ citas.next_page_number }}" style="padding:5px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;color:#475569;text-decoration:none;">Siguiente →</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

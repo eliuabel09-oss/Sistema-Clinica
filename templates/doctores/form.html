@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block title %}{% if doctor %}Editar Doctor{% else %}Nuevo Doctor{% endif %} — Sullana Health{% endblock %}
+{% block nav_doctores %}active{% endblock %}
+{% block page_title %}{% if doctor %}Editar Doctor{% else %}Nuevo Doctor{% endif %}{% endblock %}
+{% block page_subtitle %}{% if doctor %}Dr. {{ doctor.apellidos }}{% else %}Registrar nuevo médico{% endif %}{% endblock %}
+
+{% block header_actions %}
+  <a href="{% url 'doctores:lista' %}" class="btn-secondary">← Volver</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div style="display:grid;grid-template-columns:1fr 360px;gap:20px;max-width:960px;">
+
+    <!-- Datos del doctor -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <div class="card">
+        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
+          👨‍⚕️ Datos Profesionales
+        </h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <label class="form-label">Nombres *</label>
+            <input type="text" name="nombres" value="{{ form.nombres.value|default:'' }}" class="form-input" required>
+          </div>
+          <div>
+            <label class="form-label">Apellidos *</label>
+            <input type="text" name="apellidos" value="{{ form.apellidos.value|default:'' }}" class="form-input" required>
+          </div>
+          <div style="grid-column:span 2;">
+            <label class="form-label">Especialidad *</label>
+            <input type="text" name="especialidad" value="{{ form.especialidad.value|default:'' }}" class="form-input" required placeholder="Ej: Medicina General, Cardiología...">
+          </div>
+          <div>
+            <label class="form-label">Cédula profesional *</label>
+            <input type="text" name="cedula" value="{{ form.cedula.value|default:'' }}" class="form-input" required>
+            {% if form.cedula.errors %}<div style="color:#dc2626;font-size:12px;margin-top:3px;">{{ form.cedula.errors.0 }}</div>{% endif %}
+          </div>
+          <div>
+            <label class="form-label">Teléfono</label>
+            <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}" class="form-input">
+          </div>
+          <div style="grid-column:span 2;">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" value="{{ form.email.value|default:'' }}" class="form-input">
+          </div>
+          <div style="grid-column:span 2;">
+            <label class="form-label">Horario de atención</label>
+            <input type="text" name="horario_atencion" value="{{ form.horario_atencion.value|default:'' }}" class="form-input" placeholder="Ej: Lun-Vie 8:00 - 14:00">
+          </div>
+          <div style="grid-column:span 2;">
+            <label class="form-label">Biografía / Presentación</label>
+            <textarea name="biografia" class="form-input" rows="3" placeholder="Breve presentación del doctor...">{{ form.biografia.value|default:'' }}</textarea>
+          </div>
+          <div style="grid-column:span 2;">
+            <label class="form-label">Foto</label>
+            <input type="file" name="foto" class="form-input" accept="image/*">
+            {% if doctor.foto %}
+            <div style="margin-top:8px;display:flex;align-items:center;gap:10px;">
+              <img src="{{ doctor.foto.url }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+              <span style="font-size:12px;color:#64748b;">Foto actual (sube una nueva para reemplazarla)</span>
+            </div>
+            {% endif %}
+          </div>
+          <div style="grid-column:span 2;">
+            <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" name="activo" {% if form.activo.value %}checked{% endif %} style="width:16px;height:16px;accent-color:#0d9488;">
+              Doctor activo (disponible para citas)
+            </label>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Columna derecha — acceso al sistema -->
+    <div>
+      <div class="card" style="position:sticky;top:80px;">
+
+        {% if doctor and doctor.usuario %}
+        <!-- Ya tiene usuario -->
+        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px;">🔐 Acceso al Sistema</h3>
+        <div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:8px;padding:14px;margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:600;color:#065f46;margin-bottom:4px;">✅ Usuario activo</div>
+          <div style="font-size:14px;color:#1e293b;font-weight:600;">@{{ doctor.usuario.username }}</div>
+          <div style="font-size:12px;color:#64748b;margin-top:4px;">
+            Para cambiar la contraseña, hazlo desde el panel Admin Django.
+          </div>
+        </div>
+
+        {% else %}
+        <!-- Sin usuario todavía -->
+        <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:6px;">🔐 Acceso al Sistema</h3>
+        <p style="font-size:13px;color:#64748b;margin-bottom:16px;">
+          Crea credenciales para que el doctor pueda iniciar sesión y ver su panel personal.
+        </p>
+
+        <div style="margin-bottom:14px;">
+          <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:12px;">
+            <input type="checkbox" name="crear_usuario" id="toggle_usuario" style="width:16px;height:16px;accent-color:#0d9488;"
+              onchange="document.getElementById('campos_usuario').style.display = this.checked ? 'block' : 'none'">
+            Crear usuario de acceso para este doctor
+          </label>
+        </div>
+
+        <div id="campos_usuario" style="display:none;">
+          <div style="margin-bottom:12px;">
+            <label class="form-label">Nombre de usuario *</label>
+            <input type="text" name="username" value="{{ form_usuario.username.value|default:'' }}" class="form-input" placeholder="ej: dr.ramirez">
+            {% if form_usuario.username.errors %}<div style="color:#dc2626;font-size:12px;margin-top:3px;">{{ form_usuario.username.errors.0 }}</div>{% endif %}
+          </div>
+          <div style="margin-bottom:12px;">
+            <label class="form-label">Contraseña *</label>
+            <input type="password" name="password1" class="form-input" placeholder="••••••••">
+          </div>
+          <div>
+            <label class="form-label">Confirmar contraseña *</label>
+            <input type="password" name="password2" class="form-input" placeholder="••••••••">
+            {% if form_usuario.non_field_errors %}<div style="color:#dc2626;font-size:12px;margin-top:3px;">{{ form_usuario.non_field_errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;">
+          <button type="submit" class="btn-primary" style="width:100%;justify-content:center;padding:11px;">
+            {% if doctor %}💾 Guardar cambios{% else %}✅ Registrar doctor{% endif %}
+          </button>
+        </div>
+
+        {% if doctor %}
+        <form method="post" action="{% url 'doctores:eliminar' doctor.pk %}" style="margin-top:10px;" onsubmit="return confirm('¿Eliminar al Dr. {{ doctor.apellidos }}?')">
+          {% csrf_token %}
+          <button type="submit" class="btn-danger" style="width:100%;justify-content:center;padding:10px;">🗑 Eliminar doctor</button>
+        </form>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</form>
+{% endblock %}
