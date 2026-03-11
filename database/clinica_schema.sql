@@ -192,6 +192,10 @@ ALTER TABLE citas
   ADD COLUMN informe_fecha DATETIME NULL DEFAULT NULL;
 
 
+ALTER TABLE pacientes
+  ADD COLUMN dni VARCHAR(8) NULL DEFAULT NULL
+  AFTER curp;
+
 -- ============================================================
 -- VERIFICAR que todo quedó bien:
 -- SHOW COLUMNS FROM doctores;
@@ -210,3 +214,124 @@ INSERT INTO pacientes (nombres, apellidos, fecha_nacimiento, sexo, curp, tipo_sa
 ('Juan Pablo', 'García López',   '1985-03-12', 'M', 'GALJ850312HDFRZN01', 'O+', '555-2001', 'jp.garcia@email.com'),
 ('María Elena','Soto Vargas',    '1992-07-25', 'F', 'SOVM920725MDFTRR02', 'A+', '555-2002', 'm.soto@email.com');
 
+--- ============================================================
+-- PASO 1: Eliminar tabla si quedó a medias (ejecutar primero)
+-- ============================================================
+DROP TABLE IF EXISTS `doctores_horarios`;
+
+-- ============================================================
+-- PASO 2: Crear tabla sin CONSTRAINT (más compatible con XAMPP)
+-- ============================================================
+CREATE TABLE `doctores_horarios` (
+  `id`          INT      NOT NULL AUTO_INCREMENT,
+  `doctor_id`   INT      NOT NULL,
+  `dia_semana`  TINYINT  NOT NULL COMMENT '0=Lun 1=Mar 2=Mie 3=Jue 4=Vie 5=Sab 6=Dom',
+  `hora_inicio` TIME     NOT NULL,
+  `hora_fin`    TIME     NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `horario_unico` (`doctor_id`, `dia_semana`),
+  KEY `idx_doctor_id` (`doctor_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- ============================================================
+-- PASO 3: Horarios Lun-Vie 8am-6pm para los 4 doctores reales
+-- Doctor 1: Ana Lucía Ramírez Torres     — Medicina General
+-- Doctor 2: Carlos Mendoza Herrera       — Cardiología
+-- Doctor 3: abel diaz                    — General
+-- Doctor 4: Josias Diaz                  — Soporte
+-- ============================================================
+INSERT INTO `doctores_horarios` (`doctor_id`, `dia_semana`, `hora_inicio`, `hora_fin`) VALUES
+-- Dr. Ana Lucía Ramírez — Medicina General
+(1, 0, '08:00:00', '18:00:00'),
+(1, 1, '08:00:00', '18:00:00'),
+(1, 2, '08:00:00', '18:00:00'),
+(1, 3, '08:00:00', '18:00:00'),
+(1, 4, '08:00:00', '18:00:00'),
+
+-- Dr. Carlos Mendoza — Cardiología
+(2, 0, '08:00:00', '18:00:00'),
+(2, 1, '08:00:00', '18:00:00'),
+(2, 2, '08:00:00', '18:00:00'),
+(2, 3, '08:00:00', '18:00:00'),
+(2, 4, '08:00:00', '18:00:00'),
+
+-- Dr. abel diaz — General
+(3, 0, '08:00:00', '18:00:00'),
+(3, 1, '08:00:00', '18:00:00'),
+(3, 2, '08:00:00', '18:00:00'),
+(3, 3, '08:00:00', '18:00:00'),
+(3, 4, '08:00:00', '18:00:00'),
+
+-- Dr. Josias Diaz — Soporte
+(4, 0, '08:00:00', '18:00:00'),
+(4, 1, '08:00:00', '18:00:00'),
+(4, 2, '08:00:00', '18:00:00'),
+(4, 3, '08:00:00', '18:00:00'),
+(4, 4, '08:00:00', '18:00:00');
+
+-- ============================================================
+-- PASO 4: Verificar que quedó bien
+-- ============================================================
+SELECT
+  d.id,
+  d.nombres,
+  d.apellidos,
+  d.especialidad,
+  h.dia_semana,
+  CASE h.dia_semana
+    WHEN 0 THEN 'Lunes'
+    WHEN 1 THEN 'Martes'
+    WHEN 2 THEN 'Miércoles'
+    WHEN 3 THEN 'Jueves'
+    WHEN 4 THEN 'Viernes'
+    WHEN 5 THEN 'Sábado'
+    WHEN 6 THEN 'Domingo'
+  END AS dia_nombre,
+  h.hora_inicio,
+  h.hora_fin
+FROM doctores_horarios h
+JOIN doctores d ON h.doctor_id = d.id
+ORDER BY d.id, h.dia_semana;
+
+-- ============================================================
+-- CORREGIR horarios a Lun-Vie 8am-6pm para los 3 doctores
+-- Ejecutar en phpMyAdmin → clinica_db → SQL
+-- ============================================================
+
+-- Limpiar los registros actuales que quedaron mal
+DELETE FROM `doctores_horarios`;
+
+-- Reinsertar correctamente (solo doctores 1, 2, 3 que existen)
+INSERT INTO `doctores_horarios` (`doctor_id`, `dia_semana`, `hora_inicio`, `hora_fin`) VALUES
+-- Dr. Ana Lucía Ramírez (id=1) — Medicina General
+(1, 0, '08:00:00', '18:00:00'),
+(1, 1, '08:00:00', '18:00:00'),
+(1, 2, '08:00:00', '18:00:00'),
+(1, 3, '08:00:00', '18:00:00'),
+(1, 4, '08:00:00', '18:00:00'),
+
+-- Dr. Carlos Mendoza (id=2) — Cardiología
+(2, 0, '08:00:00', '18:00:00'),
+(2, 1, '08:00:00', '18:00:00'),
+(2, 2, '08:00:00', '18:00:00'),
+(2, 3, '08:00:00', '18:00:00'),
+(2, 4, '08:00:00', '18:00:00'),
+
+-- Dr. abel diaz (id=3) — General
+(3, 0, '08:00:00', '18:00:00'),
+(3, 1, '08:00:00', '18:00:00'),
+(3, 2, '08:00:00', '18:00:00'),
+(3, 3, '08:00:00', '18:00:00'),
+(3, 4, '08:00:00', '18:00:00');
+
+-- También activar al Dr. abel diaz que estaba inactivo
+UPDATE `doctores` SET `activo` = 1 WHERE `id` = 3;
+
+-- Verificar resultado
+SELECT d.id, d.nombres, d.apellidos, d.especialidad, d.activo,
+       COUNT(h.id) as dias_configurados
+FROM doctores d
+LEFT JOIN doctores_horarios h ON h.doctor_id = d.id
+GROUP BY d.id;
+
+UPDATE `doctores` SET `activo` = 1 WHERE `id` = 3;

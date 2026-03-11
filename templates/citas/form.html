@@ -2,250 +2,714 @@
 {% block title %}{% if cita %}Editar Cita{% else %}Nueva Cita{% endif %} — Sullana Health{% endblock %}
 {% block nav_citas %}active{% endblock %}
 {% block page_title %}{% if cita %}Editar Cita{% else %}Nueva Cita{% endif %}{% endblock %}
+{% block page_subtitle %}{% if cita %}Modificar datos de la cita #{{ cita.pk }}{% else %}Agendamiento inteligente con disponibilidad en tiempo real{% endif %}{% endblock %}
 
 {% block header_actions %}
-  <a href="{% url 'citas:lista' %}" class="btn-secondary" style="text-decoration: none; padding: 8px 16px; font-size: 13px; border-radius: 10px; display: inline-flex; align-items: center; gap: 5px;">
-    <span>←</span> Volver
+  <a href="{% url 'citas:lista' %}" class="btn-secondary" style="text-decoration:none;padding:8px 16px;font-size:13px;border-radius:10px;display:inline-flex;align-items:center;gap:5px;">
+    ← Volver
   </a>
 {% endblock %}
 
 {% block content %}
 <style>
-  /* Variables de marca Sullana Health */
   :root {
     --primary: #0d9488;
     --primary-hover: #0f766e;
-    --bg-input: #f8fafc;
+    --primary-soft: #f0fdfa;
     --border-soft: #e2e8f0;
     --text-dark: #1e293b;
     --text-muted: #64748b;
+    --bg-input: #f8fafc;
   }
 
-  .compact-form-card {
-    max-width: 850px;
+  .form-card {
+    max-width: 920px;
     margin: 0 auto;
-    background: #ffffff;
+    background: #fff;
     border-radius: 24px;
     border: 1px solid var(--border-soft);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.04);
     position: relative;
     overflow: hidden;
     animation: fadeIn 0.4s ease-out;
   }
 
-  /* Barra estética superior */
-  .compact-form-card::before {
+  .form-card::before {
     content: "";
     position: absolute;
     top: 0; left: 0; width: 100%; height: 5px;
     background: linear-gradient(90deg, var(--primary), #2dd4bf);
   }
 
-  .form-body {
-    padding: 30px;
+  .form-body { padding: 32px; }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  .grid-system {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
+  .section-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border-soft);
   }
 
-  .col-2 { grid-column: span 2; }
-  .col-3 { grid-column: span 3; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .span-2 { grid-column: span 2; }
+  .span-3 { grid-column: span 3; }
 
-  .group-label {
+  .field-label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--text-muted);
     margin-bottom: 6px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: .05em;
   }
 
-  .input-styled {
+  .field-label .required { color: #ef4444; margin-left: 2px; }
+
+  .inp {
     width: 100%;
-    padding: 11px 15px;
+    padding: 11px 14px;
     border-radius: 12px;
     border: 1px solid var(--border-soft);
     background: var(--bg-input);
     font-size: 14px;
     color: var(--text-dark);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all .2s;
+    box-sizing: border-box;
   }
 
-  .input-styled:focus {
+  .inp:focus {
     outline: none;
     border-color: var(--primary);
-    background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.12);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(13,148,136,.1);
+  }
+
+  .inp:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
+  /* Panel de disponibilidad */
+  #panel-disponibilidad {
+    display: none;
+    margin-top: 20px;
+    border-radius: 18px;
+    border: 1px solid var(--border-soft);
+    overflow: hidden;
+    animation: fadeIn .3s ease-out;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--primary-soft);
+    border-bottom: 1px solid #ccfbf1;
+  }
+
+  .carga-badge {
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .carga-disponible  { background: #dcfce7; color: #166534; }
+  .carga-moderado    { background: #fef9c3; color: #854d0e; }
+  .carga-ocupado     { background: #ffedd5; color: #9a3412; }
+  .carga-muy_ocupado { background: #fee2e2; color: #991b1b; }
+
+  /* Barra de carga */
+  .carga-bar-wrap {
+    padding: 12px 20px;
+    background: #fff;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .carga-bar-bg {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .carga-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width .6s ease;
+  }
+
+  /* Slots de horario */
+  .slots-wrap {
+    padding: 16px 20px;
+    background: #fff;
+  }
+
+  .slots-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .slot {
+    padding: 7px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all .15s;
+    user-select: none;
+  }
+
+  .slot-libre {
+    background: #f0fdfa;
+    color: #0f766e;
+    border-color: #99f6e4;
+  }
+
+  .slot-libre:hover {
+    background: #ccfbf1;
+    border-color: var(--primary);
     transform: translateY(-1px);
   }
 
-  /* Botones con estilo premium */
+  .slot-libre.selected {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(13,148,136,.3);
+  }
+
+  .slot-ocupado {
+    background: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    text-decoration: line-through;
+    opacity: .6;
+  }
+
+  /* Sugerencia */
+  .sugerencia-box {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #92400e;
+  }
+
+  .sugerencia-box button {
+    background: #f59e0b;
+    color: #fff;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s;
+  }
+
+  .sugerencia-box button:hover { background: #d97706; }
+
+  /* Spinner */
+  .spinner {
+    display: none;
+    width: 18px; height: 18px;
+    border: 3px solid #e2e8f0;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
   .btn-main {
     background: var(--primary);
-    color: white;
+    color: #fff;
     padding: 12px 30px;
     border-radius: 14px;
     font-weight: 700;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(13, 148, 136, 0.2);
-    transition: all 0.2s;
+    font-size: 15px;
+    transition: all .2s;
+    box-shadow: 0 4px 12px rgba(13,148,136,.25);
   }
 
   .btn-main:hover {
     background: var(--primary-hover);
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(13, 148, 136, 0.3);
+    box-shadow: 0 8px 20px rgba(13,148,136,.3);
   }
 
-  .btn-outline {
-    background: transparent;
-    border: 1px solid #fee2e2;
-    color: #ef4444;
-    padding: 10px 18px;
-    border-radius: 12px;
+  .alert-no-horario {
+    display: none;
+    padding: 14px 18px;
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    border-radius: 14px;
+    color: #9a3412;
+    font-size: 13px;
     font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .btn-outline:hover {
-    background: #fef2f2;
-    border-color: #fca5a5;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    margin-top: 12px;
   }
 </style>
 
-<div class="compact-form-card">
+<div class="form-card">
   <form method="post" id="citaForm">
     {% csrf_token %}
-    
     <div class="form-body">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="background: #f0fdfa; color: var(--primary); padding: 8px; border-radius: 10px; font-size: 18px;">🩺</span>
-          <h3 style="margin: 0; font-size: 16px; color: var(--text-dark);">Información de la Cita</h3>
+
+      <!-- Encabezado -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="background:var(--primary-soft);color:var(--primary);padding:10px;border-radius:12px;font-size:20px;">🗓️</span>
+          <div>
+            <div style="font-size:16px;font-weight:800;color:var(--text-dark);">Información de la Cita</div>
+            <div style="font-size:12px;color:var(--text-muted);">
+              {% if cita %}Modificando cita #{{ cita.pk }}{% else %}Selecciona especialidad → doctor → fecha → hora disponible{% endif %}
+            </div>
+          </div>
         </div>
         {% if cita %}
-          <span style="font-size: 11px; background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 20px; font-weight: 700;">EDITANDO ID: {{ cita.pk }}</span>
+          <span style="font-size:11px;background:#f1f5f9;color:#475569;padding:4px 12px;border-radius:20px;font-weight:700;">EDITANDO #{{ cita.pk }}</span>
         {% else %}
-          <span style="font-size: 11px; background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 20px; font-weight: 700;">NUEVO REGISTRO</span>
+          <span style="font-size:11px;background:#ecfdf5;color:#059669;padding:4px 12px;border-radius:20px;font-weight:700;">NUEVO REGISTRO</span>
         {% endif %}
       </div>
 
-      <div class="grid-system">
-        <div class="col-2">
-          <label class="group-label">Paciente Asignado *</label>
-          <select name="paciente" class="input-styled" required>
+      <!-- SECCIÓN 1: Paciente y tipo -->
+      <div class="section-title">📋 Datos del Paciente</div>
+      <div class="grid-3" style="margin-bottom:24px;">
+        <div class="span-2">
+          <label class="field-label">Paciente asignado <span class="required">*</span></label>
+          <select name="paciente" id="sel-paciente" class="inp" required>
             <option value="">Seleccionar paciente del sistema...</option>
             {% for p in pacientes %}
-            <option value="{{ p.pk }}" {% if form.paciente.value|stringformat:"s" == p.pk|stringformat:"s" or request.GET.paciente == p.pk|stringformat:"s" %}selected{% endif %}>
-              {{ p.nombre_completo }}
+            <option value="{{ p.pk }}"
+              {% if form.paciente.value|stringformat:"s" == p.pk|stringformat:"s" or request.GET.paciente == p.pk|stringformat:"s" %}selected{% endif %}>
+              {{ p.nombre_completo }}{% if p.dni %} — DNI: {{ p.dni }}{% endif %}
             </option>
             {% endfor %}
           </select>
         </div>
-        
         <div>
-          <label class="group-label">Estado Actual</label>
-          <select name="estado" class="input-styled">
-            <option value="PENDIENTE" {% if form.estado.value == 'PENDIENTE' %}selected{% endif %}>🕒 Pendiente</option>
+          <label class="field-label">Tipo de consulta</label>
+          <select name="tipo" class="inp">
+            <option value="PRIMERA_VEZ" {% if form.tipo.value == 'PRIMERA_VEZ' or not form.tipo.value %}selected{% endif %}>Primera vez</option>
+            <option value="SEGUIMIENTO" {% if form.tipo.value == 'SEGUIMIENTO' %}selected{% endif %}>Seguimiento</option>
+            <option value="URGENCIA"    {% if form.tipo.value == 'URGENCIA' %}selected{% endif %}>Urgencia</option>
+            <option value="REVISION"    {% if form.tipo.value == 'REVISION' %}selected{% endif %}>Revisión de resultados</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 2: Especialidad y Doctor -->
+      <div class="section-title">👨‍⚕️ Selección del Médico</div>
+      <div class="grid-3" style="margin-bottom:8px;">
+
+        <!-- Paso 1: Especialidad -->
+        <div>
+          <label class="field-label">
+            1 — Especialidad <span class="required">*</span>
+          </label>
+          <select id="sel-especialidad" class="inp">
+            <option value="">Todas las especialidades</option>
+            {% for esp in especialidades %}
+            <option value="{{ esp }}"
+              {% if cita and cita.doctor.especialidad == esp %}selected{% endif %}>
+              {{ esp }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Paso 2: Doctor (filtrado por especialidad) -->
+        <div class="span-2">
+          <label class="field-label" style="display:flex;align-items:center;gap:8px;">
+            2 — Médico especialista <span class="required">*</span>
+            <div class="spinner" id="spinner-doctor"></div>
+          </label>
+          <select name="doctor" id="sel-doctor" class="inp" required>
+            <option value="">← Selecciona primero una especialidad</option>
+            {% if cita %}
+            <option value="{{ cita.doctor.pk }}" selected>Dr. {{ cita.doctor.apellidos }}, {{ cita.doctor.nombres }} — {{ cita.doctor.especialidad }}</option>
+            {% endif %}
+          </select>
+          <div id="doctor-disponibilidad" style="margin-top:6px;font-size:12px;color:var(--text-muted);"></div>
+        </div>
+
+      </div>
+
+      <!-- SECCIÓN 3: Fecha y Horario -->
+      <div class="section-title" style="margin-top:24px;">🕐 Fecha y Horario</div>
+      <div class="grid-3" style="margin-bottom:8px;">
+
+        <!-- Paso 3: Fecha -->
+        <div>
+          <label class="field-label">3 — Fecha de la cita <span class="required">*</span></label>
+          <input type="date" id="inp-fecha" class="inp"
+            value="{% if cita %}{{ cita.fecha_hora|date:'Y-m-d' }}{% endif %}"
+            min="{{ hoy }}"
+          >
+        </div>
+
+        <!-- Duración -->
+        <div>
+          <label class="field-label">Duración (minutos)</label>
+          <select id="sel-duracion" class="inp" name="duracion_min">
+            <option value="15">15 min</option>
+            <option value="20">20 min</option>
+            <option value="30" {% if not form.duracion_min.value or form.duracion_min.value == '30' %}selected{% endif %}>30 min</option>
+            <option value="40">40 min</option>
+            <option value="45">45 min</option>
+            <option value="50">50 min</option>
+            <option value="60">60 min (1 hora)</option>
+            <option value="90">90 min</option>
+          </select>
+        </div>
+
+        <!-- Estado -->
+        <div>
+          <label class="field-label">Estado actual</label>
+          <select name="estado" class="inp">
+            <option value="PENDIENTE"  {% if form.estado.value == 'PENDIENTE'  or not form.estado.value %}selected{% endif %}>🕒 Pendiente</option>
             <option value="CONFIRMADA" {% if form.estado.value == 'CONFIRMADA' %}selected{% endif %}>✅ Confirmada</option>
-            <option value="CANCELADA" {% if form.estado.value == 'CANCELADA' %}selected{% endif %}>❌ Cancelada</option>
+            <option value="CANCELADA"  {% if form.estado.value == 'CANCELADA'  %}selected{% endif %}>❌ Cancelada</option>
             <option value="COMPLETADA" {% if form.estado.value == 'COMPLETADA' %}selected{% endif %}>🏁 Completada</option>
           </select>
         </div>
 
-        <div class="col-2">
-          <label class="group-label">Médico Especialista *</label>
-          <select name="doctor" class="input-styled" required>
-            <option value="">Seleccionar especialista...</option>
-            {% for d in doctores %}
-            <option value="{{ d.pk }}" {% if form.doctor.value|stringformat:"s" == d.pk|stringformat:"s" %}selected{% endif %}>
-              Dr. {{ d.apellidos }} — {{ d.especialidad }}
-            </option>
-            {% endfor %}
-          </select>
-        </div>
+      </div>
 
-        <div>
-          <label class="group-label">Categoría</label>
-          <select name="tipo" class="input-styled">
-            <option value="PRIMERA_VEZ" {% if form.tipo.value == 'PRIMERA_VEZ' %}selected{% endif %}>Primera vez</option>
-            <option value="SEGUIMIENTO" {% if form.tipo.value == 'SEGUIMIENTO' %}selected{% endif %}>Seguimiento</option>
-            <option value="URGENCIA" {% if form.tipo.value == 'URGENCIA' %}selected{% endif %}>Urgencia</option>
-          </select>
-        </div>
+      <!-- Aviso sin horario -->
+      <div class="alert-no-horario" id="alert-no-horario">
+        ⚠️ <span id="alert-no-horario-msg"></span>
+      </div>
 
-        <div class="col-2">
-          <label class="group-label">Fecha y Hora de Cita *</label>
-          <input type="datetime-local" name="fecha_hora" value="{{ form.fecha_hora.value|date:'Y-m-d\TH:i'|default:'' }}" class="input-styled" required>
-        </div>
+      <!-- Panel de disponibilidad -->
+      <div id="panel-disponibilidad">
 
-        <div>
-          <label class="group-label">Minutos</label>
-          <input type="number" name="duracion_min" value="{{ form.duracion_min.value|default:'30' }}" class="input-styled" step="5">
-        </div>
-
-        <div class="col-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 5px;">
+        <!-- Header con carga del doctor -->
+        <div class="panel-header">
           <div>
-            <label class="group-label">Motivo de consulta</label>
-            <textarea name="motivo" class="input-styled" rows="2" style="resize: none;" placeholder="Escriba aquí el motivo...">{{ form.motivo.value|default:'' }}</textarea>
+            <div style="font-size:13px;font-weight:800;color:#134e4a;" id="panel-doctor-nombre"></div>
+            <div style="font-size:11px;color:#0d9488;margin-top:2px;" id="panel-horario-texto"></div>
           </div>
-          <div>
-            <label class="group-label">Notas Administrativas</label>
-            <textarea name="notas_admin" class="input-styled" rows="2" style="resize: none;" placeholder="Solo uso interno...">{{ form.notas_admin.value|default:'' }}</textarea>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div>
+              <div style="font-size:11px;color:#64748b;text-align:right;" id="panel-citas-info"></div>
+            </div>
+            <span class="carga-badge" id="panel-carga-badge"></span>
           </div>
+        </div>
+
+        <!-- Barra de carga -->
+        <div class="carga-bar-wrap">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-bottom:5px;">
+            <span>Ocupación del día</span>
+            <span id="panel-pct-texto"></span>
+          </div>
+          <div class="carga-bar-bg">
+            <div class="carga-bar-fill" id="panel-carga-fill" style="width:0%;background:#0d9488;"></div>
+          </div>
+        </div>
+
+        <!-- Slots -->
+        <div class="slots-wrap">
+          <div class="sugerencia-box" id="sugerencia-box">
+            <span>⚡</span>
+            <span>Próximo horario libre: <strong id="sugerido-hora"></strong></span>
+            <button type="button" onclick="usarSugerido()">Usar este horario</button>
+          </div>
+          <div style="font-size:11px;color:#64748b;margin-bottom:10px;font-weight:600;">
+            Selecciona un horario disponible — slots de {{ duracion_min|default:"?" }} min cada uno:
+          </div>
+          <div class="slots-grid" id="slots-grid"></div>
+        </div>
+
+      </div>
+
+      <!-- Campo oculto: hora seleccionada + fecha completa para el POST -->
+      <input type="hidden" name="fecha_hora" id="inp-fecha-hora"
+        value="{% if cita %}{{ cita.fecha_hora|date:'Y-m-d' }}T{{ cita.fecha_hora|date:'H:i' }}{% endif %}">
+
+      <!-- SECCIÓN 4: Notas -->
+      <div class="section-title" style="margin-top:24px;">📝 Notas</div>
+      <div class="grid-2" style="margin-bottom:28px;">
+        <div>
+          <label class="field-label">Motivo de consulta</label>
+          <textarea name="motivo" class="inp" rows="2" style="resize:none;" placeholder="Describa el motivo...">{{ form.motivo.value|default:'' }}</textarea>
+        </div>
+        <div>
+          <label class="field-label">Notas administrativas</label>
+          <textarea name="notas_admin" class="inp" rows="2" style="resize:none;" placeholder="Solo uso interno...">{{ form.notas_admin.value|default:'' }}</textarea>
         </div>
       </div>
 
-      <div style="display: flex; align-items: center; gap: 12px; margin-top: 35px; padding-top: 20px; border-top: 1px solid var(--border-soft);">
-        <button type="submit" class="btn-main">
+      <!-- Botones -->
+      <div style="display:flex;align-items:center;gap:12px;padding-top:20px;border-top:1px solid var(--border-soft);">
+        <button type="submit" class="btn-main" id="btn-submit">
           {% if cita %}💾 Guardar Cambios{% else %}✨ Agendar Nueva Cita{% endif %}
         </button>
-        
-        <a href="{% url 'citas:lista' %}" class="btn-secondary" style="text-decoration: none; padding: 12px 20px; border-radius: 14px; font-size: 14px; font-weight: 600;">Cancelar</a>
+        <a href="{% url 'citas:lista' %}" class="btn-secondary" style="text-decoration:none;padding:12px 20px;border-radius:14px;font-size:14px;font-weight:600;">Cancelar</a>
 
         {% if cita %}
-          <button type="button" onclick="openSullanaModal()" class="btn-outline" style="margin-left: auto;">
-            🗑️ Eliminar
-          </button>
+        <button type="button" onclick="document.getElementById('modalDel').style.display='flex'" class="btn-secondary" style="margin-left:auto;background:#fff1f2;color:#e11d48;border-color:#fecdd3;">
+          🗑️ Eliminar
+        </button>
         {% endif %}
       </div>
-    </div>
+
+    </div><!-- /form-body -->
   </form>
 </div>
 
+<!-- Modal eliminar -->
 {% if cita %}
-<div id="modalConfirm" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.5); backdrop-filter:blur(5px); display:none; align-items:center; justify-content:center; z-index:10000;">
-  <div style="background:white; padding:35px; border-radius:24px; max-width:380px; text-align:center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-    <div style="background:#fee2e2; color:#ef4444; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin: 0 auto 20px; font-size: 24px;">⚠️</div>
-    <h3 style="color:#1e293b; margin-bottom:10px;">¿Deseas eliminarla?</h3>
-    <p style="color:#64748b; font-size:14px; margin-bottom:25px;">Esta acción es definitiva y la cita desaparecerá de la agenda de Sullana Health.</p>
-    <div style="display:flex; gap:12px; justify-content:center;">
-      <button onclick="closeSullanaModal()" class="btn-secondary" style="padding:10px 20px; border-radius:12px;">No, volver</button>
+<div id="modalDel" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.5);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:10000;">
+  <div style="background:#fff;padding:35px;border-radius:24px;max-width:380px;text-align:center;">
+    <div style="background:#fee2e2;color:#ef4444;width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;">⚠️</div>
+    <h3 style="color:#1e293b;margin-bottom:10px;">¿Eliminar esta cita?</h3>
+    <p style="color:#64748b;font-size:14px;margin-bottom:24px;">Esta acción es definitiva.</p>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button onclick="document.getElementById('modalDel').style.display='none'" class="btn-secondary" style="padding:10px 20px;border-radius:12px;">Cancelar</button>
       <form method="post" action="{% url 'citas:eliminar' cita.pk %}">
         {% csrf_token %}
-        <button type="submit" style="background:#ef4444; color:white; border:none; padding:10px 20px; border-radius:12px; font-weight:700; cursor:pointer;">Sí, eliminar</button>
+        <button type="submit" style="background:#ef4444;color:#fff;border:none;padding:10px 20px;border-radius:12px;font-weight:700;cursor:pointer;">Sí, eliminar</button>
       </form>
     </div>
   </div>
 </div>
-
-<script>
-  const mod = document.getElementById('modalConfirm');
-  function openSullanaModal() { mod.style.display = 'flex'; }
-  function closeSullanaModal() { mod.style.display = 'none'; }
-  window.onclick = (e) => { if(e.target == mod) closeSullanaModal(); }
-</script>
 {% endif %}
 
+<script>
+// ── Estado global ────────────────────────────────────────────
+let slotSugeridoHora = null;
+let slotSeleccionado = null;
+const AJAX_DOCTORES = "{% url 'citas:ajax_doctores' %}";
+const AJAX_HORARIOS = "{% url 'citas:ajax_horarios' %}";
+
+// ── 1. Al cambiar especialidad → cargar doctores ──────────────
+document.getElementById('sel-especialidad').addEventListener('change', function() {
+  cargarDoctores(this.value);
+});
+
+function cargarDoctores(especialidad) {
+  const selDoctor = document.getElementById('sel-doctor');
+  const spinner   = document.getElementById('spinner-doctor');
+
+  spinner.style.display = 'inline-block';
+  selDoctor.disabled = true;
+
+  const url = `${AJAX_DOCTORES}?especialidad=${encodeURIComponent(especialidad)}`;
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      selDoctor.innerHTML = '<option value="">Seleccionar médico...</option>';
+      if (data.doctores.length === 0) {
+        selDoctor.innerHTML = '<option value="">No hay doctores con esa especialidad</option>';
+      } else {
+        data.doctores.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.id;
+          const sinHorario = !d.tiene_horario ? ' ⚠️ sin horario' : '';
+          const inactivo   = !d.activo        ? ' [inactivo]'     : '';
+          opt.textContent = `${d.nombre} — ${d.especialidad}${sinHorario}${inactivo}`;
+          selDoctor.appendChild(opt);
+        });
+      }
+      selDoctor.disabled = false;
+      spinner.style.display = 'none';
+      // Limpiar panel de disponibilidad
+      ocultarPanel();
+    })
+    .catch(() => {
+      spinner.style.display = 'none';
+      selDoctor.disabled = false;
+    });
+}
+
+// ── 2. Al cambiar doctor o fecha o duración → verificar disponibilidad ──
+['sel-doctor', 'inp-fecha', 'sel-duracion'].forEach(id => {
+  document.getElementById(id).addEventListener('change', verificarDisponibilidad);
+});
+
+function verificarDisponibilidad() {
+  const doctorId = document.getElementById('sel-doctor').value;
+  const fecha    = document.getElementById('inp-fecha').value;
+  const duracion = document.getElementById('sel-duracion').value;
+
+  if (!doctorId || !fecha) {
+    ocultarPanel();
+    return;
+  }
+
+  const url = `${AJAX_HORARIOS}?doctor_id=${doctorId}&fecha=${fecha}&duracion=${duracion}`;
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.disponible) {
+        ocultarPanel();
+        document.getElementById('alert-no-horario').style.display = 'flex';
+        document.getElementById('alert-no-horario-msg').textContent = data.mensaje;
+        return;
+      }
+      document.getElementById('alert-no-horario').style.display = 'none';
+      mostrarPanel(data, fecha);
+    });
+}
+
+function mostrarPanel(data, fecha) {
+  const panel = document.getElementById('panel-disponibilidad');
+  panel.style.display = 'block';
+
+  // Header
+  document.getElementById('panel-doctor-nombre').textContent = data.doctor_nombre;
+  document.getElementById('panel-horario-texto').textContent =
+    `Horario: ${data.horario_inicio} – ${data.horario_fin}`;
+  document.getElementById('panel-citas-info').textContent =
+    `${data.citas_agendadas} citas agendadas · ${data.slots_libres} slots libres`;
+
+  // Badge
+  const badge = document.getElementById('panel-carga-badge');
+  badge.className = `carga-badge carga-${data.disponibilidad_label}`;
+  badge.textContent = data.disponibilidad_texto;
+
+  // Barra de carga
+  const pct  = data.pct_carga;
+  const fill = document.getElementById('panel-carga-fill');
+  fill.style.width = pct + '%';
+  fill.style.background = pct >= 90 ? '#ef4444' : pct >= 60 ? '#f59e0b' : pct >= 30 ? '#0ea5e9' : '#0d9488';
+  document.getElementById('panel-pct-texto').textContent = `${pct}% ocupado`;
+
+  // Sugerencia
+  slotSugeridoHora = data.sugerido;
+  const sugBox = document.getElementById('sugerencia-box');
+  if (data.sugerido) {
+    sugBox.style.display = 'flex';
+    document.getElementById('sugerido-hora').textContent = data.sugerido;
+  } else {
+    sugBox.style.display = 'none';
+  }
+
+  // Renderizar slots
+  const grid = document.getElementById('slots-grid');
+  grid.innerHTML = '';
+  slotSeleccionado = null;
+
+  data.slots.forEach(s => {
+    const div = document.createElement('div');
+    div.className = s.libre ? 'slot slot-libre' : 'slot slot-ocupado';
+    div.textContent = s.hora;
+    div.title = s.libre ? `Disponible: ${s.label}` : `Ocupado: ${s.label}`;
+    div.dataset.hora = s.hora;
+
+    if (s.libre) {
+      div.addEventListener('click', () => seleccionarSlot(div, s.hora, fecha));
+    }
+    grid.appendChild(div);
+  });
+
+  // Si hay sugerido, preseleccionarlo
+  if (data.sugerido) {
+    const sugeridoDiv = grid.querySelector(`[data-hora="${data.sugerido}"]`);
+    if (sugeridoDiv) seleccionarSlot(sugeridoDiv, data.sugerido, fecha);
+  }
+}
+
+function ocultarPanel() {
+  document.getElementById('panel-disponibilidad').style.display = 'none';
+  document.getElementById('alert-no-horario').style.display = 'none';
+  document.getElementById('inp-fecha-hora').value = '';
+  slotSeleccionado = null;
+}
+
+function seleccionarSlot(div, hora, fecha) {
+  // Deseleccionar anterior
+  document.querySelectorAll('.slot-libre.selected').forEach(el => el.classList.remove('selected'));
+  div.classList.add('selected');
+  slotSeleccionado = hora;
+
+  // Actualizar campo oculto fecha_hora
+  document.getElementById('inp-fecha-hora').value = `${fecha}T${hora}`;
+}
+
+function usarSugerido() {
+  if (!slotSugeridoHora) return;
+  const fecha = document.getElementById('inp-fecha').value;
+  const grid  = document.getElementById('slots-grid');
+  const div   = grid.querySelector(`[data-hora="${slotSugeridoHora}"]`);
+  if (div) seleccionarSlot(div, slotSugeridoHora, fecha);
+  // Hacer scroll al slot
+  div && div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── Validación al submit ──────────────────────────────────────
+document.getElementById('citaForm').addEventListener('submit', function(e) {
+  const fechaHora = document.getElementById('inp-fecha-hora').value;
+  {% if not cita %}
+  // Solo validar en creación nueva
+  if (!fechaHora) {
+    e.preventDefault();
+    alert('Por favor selecciona una fecha y un horario disponible para la cita.');
+    return;
+  }
+  {% endif %}
+});
+
+// ── Inicializar si es edición ─────────────────────────────────
+{% if cita %}
+// Al editar, cargar los doctores de la especialidad actual
+window.addEventListener('DOMContentLoaded', () => {
+  const esp = "{{ cita.doctor.especialidad }}";
+  if (esp) {
+    // Solo poblar el select de especialidad
+    document.getElementById('sel-especialidad').value = esp;
+  }
+  // Verificar disponibilidad con los datos actuales
+  setTimeout(verificarDisponibilidad, 300);
+});
+{% endif %}
+
+// ── Inicializar al cargar: si ya hay especialidad seleccionada ─
+window.addEventListener('DOMContentLoaded', () => {
+  const espInicial = document.getElementById('sel-especialidad').value;
+  if (espInicial) {
+    cargarDoctores(espInicial);
+  } else {
+    // Sin filtro: cargar todos los doctores
+    cargarDoctores('');
+  }
+});
+</script>
 {% endblock %}

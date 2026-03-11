@@ -6,19 +6,16 @@
 
 {% block content %}
 <style>
-    /* VARIABLES DE DISEÑO PREMIUM */
     :root {
         --brand-primary: #0d9488;
         --brand-dark: #134e4a;
         --brand-soft: #ccfbf1;
-        --bg-glass: rgba(255, 255, 255, 0.9);
         --text-main: #1e293b;
         --text-muted: #64748b;
         --shadow-flat: 0 1px 3px rgba(0,0,0,0.05);
-        --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        --shadow-elevated: 0 20px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05);
     }
 
-    /* GRID DE ESTADÍSTICAS */
     .stat-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -48,7 +45,7 @@
         position: absolute;
         top: 0; right: 0;
         width: 80px; height: 80px;
-        background: linear-gradient(135deg, transparent 50%, rgba(13, 148, 136, 0.03) 50%);
+        background: linear-gradient(135deg, transparent 50%, rgba(13,148,136,0.03) 50%);
         border-radius: 0 0 0 80px;
     }
 
@@ -59,10 +56,8 @@
         align-items: center;
         justify-content: center;
         font-size: 22px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.02);
     }
 
-    /* LAYOUT PRINCIPAL */
     .dashboard-layout {
         display: grid;
         grid-template-columns: 1fr 360px;
@@ -77,11 +72,7 @@
         box-shadow: var(--shadow-flat);
     }
 
-    /* TABLA MODERNA */
-    .modern-table-container {
-        overflow-x: auto;
-        margin-top: 10px;
-    }
+    .modern-table-container { overflow-x: auto; margin-top: 10px; }
 
     .modern-table {
         width: 100%;
@@ -108,7 +99,7 @@
     }
 
     .modern-table tr td:first-child { border-left: 1px solid #f1f5f9; border-radius: 14px 0 0 14px; }
-    .modern-table tr td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 14px 14px 0; }
+    .modern-table tr td:last-child  { border-right: 1px solid #f1f5f9; border-radius: 0 14px 14px 0; }
 
     .modern-table tr:hover td {
         background: #fff;
@@ -116,12 +107,7 @@
         transform: scale(1.005);
     }
 
-    /* BOTONES DE ACCIÓN */
-    .action-stack {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-    }
+    .action-stack { display: flex; flex-direction: column; gap: 14px; }
 
     .btn-pro {
         display: flex;
@@ -141,7 +127,6 @@
         box-shadow: 0 10px 15px -5px rgba(0,0,0,0.05);
     }
 
-    /* LISTA DE RECIENTES */
     .recent-item {
         display: flex;
         align-items: center;
@@ -153,9 +138,7 @@
         margin-bottom: 4px;
     }
 
-    .recent-item:hover {
-        background: #f8fafc;
-    }
+    .recent-item:hover { background: #f8fafc; }
 
     .avatar-lite {
         width: 44px; height: 44px;
@@ -169,59 +152,163 @@
         flex-shrink: 0;
     }
 
+    /* GRÁFICA SEMANAL */
+    .chart-bar-wrap {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        height: 120px;
+    }
+
+    .chart-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        height: 100%;
+        justify-content: flex-end;
+    }
+
+    .chart-bar {
+        width: 100%;
+        border-radius: 8px 8px 0 0;
+        background: linear-gradient(180deg, #0d9488, #14b8a6);
+        transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        min-height: 4px;
+        position: relative;
+        cursor: default;
+    }
+
+    .chart-bar:hover { background: linear-gradient(180deg, #0f766e, #0d9488); }
+
+    .chart-bar .tooltip {
+        display: none;
+        position: absolute;
+        top: -32px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e293b;
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 6px;
+        white-space: nowrap;
+        z-index: 10;
+    }
+
+    .chart-bar:hover .tooltip { display: block; }
+
+    .chart-bar.today { background: linear-gradient(180deg, #f59e0b, #fbbf24); }
+    .chart-bar.today:hover { background: linear-gradient(180deg, #d97706, #f59e0b); }
+
+    .chart-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+    }
+
+    .chart-label.today { color: #f59e0b; }
+
     @media (max-width: 1100px) {
         .dashboard-layout { grid-template-columns: 1fr; }
     }
 </style>
 
+<!-- STATS -->
 <div class="stat-grid">
     <div class="stat-card">
-        <div style="display:flex; justify-content:space-between; align-items: flex-start;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
-                <p style="color:var(--text-muted); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em;">Total Pacientes</p>
-                <h2 style="font-size:36px; font-weight:800; color:var(--text-main); margin:8px 0;">{{ total_pacientes }}</h2>
-                <div style="display:flex; align-items:center; gap:6px; color:#10b981; font-size:12px; font-weight:700;">
-                    <span>↑</span> Base de datos Sullana
-                </div>
+                <p style="color:var(--text-muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Total Pacientes</p>
+                <h2 style="font-size:36px;font-weight:800;color:var(--text-main);margin:8px 0;">{{ total_pacientes }}</h2>
+                <div style="color:#10b981;font-size:12px;font-weight:700;">↑ Base de datos Sullana</div>
             </div>
-            <div class="icon-circle" style="background:#f0fdf4; color:#16a34a;">👤</div>
+            <div class="icon-circle" style="background:#f0fdf4;color:#16a34a;">👤</div>
         </div>
     </div>
 
     <div class="stat-card">
-        <div style="display:flex; justify-content:space-between; align-items: flex-start;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
-                <p style="color:var(--text-muted); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em;">Citas para Hoy</p>
-                <h2 style="font-size:36px; font-weight:800; color:var(--text-main); margin:8px 0;">{{ citas_hoy }}</h2>
-                <div style="color:var(--text-muted); font-size:12px; font-weight:600;">Calendario actualizado</div>
+                <p style="color:var(--text-muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Citas para Hoy</p>
+                <h2 style="font-size:36px;font-weight:800;color:var(--text-main);margin:8px 0;">{{ citas_hoy }}</h2>
+                <div style="color:var(--text-muted);font-size:12px;font-weight:600;">Calendario actualizado</div>
             </div>
-            <div class="icon-circle" style="background:#eff6ff; color:#2563eb;">📅</div>
+            <div class="icon-circle" style="background:#eff6ff;color:#2563eb;">📅</div>
         </div>
     </div>
 
     <div class="stat-card">
-        <div style="display:flex; justify-content:space-between; align-items: flex-start;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
-                <p style="color:var(--text-muted); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em;">Pendientes</p>
-                <h2 style="font-size:36px; font-weight:800; color:#f59e0b; margin:8px 0;">{{ citas_pendientes }}</h2>
-                <div style="display:flex; align-items:center; gap:6px; color:#f59e0b; font-size:12px; font-weight:700;">
-                    <span>⚠️</span> Por confirmar
-                </div>
+                <p style="color:var(--text-muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Pendientes</p>
+                <h2 style="font-size:36px;font-weight:800;color:#f59e0b;margin:8px 0;">{{ citas_pendientes }}</h2>
+                <div style="color:#f59e0b;font-size:12px;font-weight:700;">⚠️ Por confirmar</div>
             </div>
-            <div class="icon-circle" style="background:#fffbeb; color:#d97706;">⏳</div>
+            <div class="icon-circle" style="background:#fffbeb;color:#d97706;">⏳</div>
         </div>
     </div>
 </div>
 
-<div class="dashboard-layout">
-    
-    <div class="glass-panel">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:30px;">
-            <div>
-                <h3 style="font-size:22px; font-weight:800; color:var(--text-main); margin:0; letter-spacing:-0.02em;">Agenda Próxima</h3>
-                <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Citas agendadas para los próximos días</p>
+<!-- GRÁFICA SEMANAL -->
+<div class="glass-panel" style="margin-bottom:32px;padding:28px 32px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <div>
+            <h3 style="font-size:17px;font-weight:800;color:var(--text-main);margin:0;">📊 Citas esta semana</h3>
+            <p style="font-size:12px;color:var(--text-muted);margin-top:3px;">Lunes a Domingo — <span style="color:#f59e0b;font-weight:700;">■</span> Hoy</p>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-size:28px;font-weight:800;color:var(--brand-dark);">{{ citas_semana_total }}</div>
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;">esta semana</div>
+        </div>
+    </div>
+
+    <div class="chart-bar-wrap">
+        {% for dia in citas_semana %}
+        <div class="chart-col">
+            <div class="chart-bar {% if dia.es_hoy %}today{% endif %}"
+                 data-count="{{ dia.total }}"
+                 style="height:4px;">
+                <div class="tooltip">{{ dia.total }} cita{{ dia.total|pluralize }}</div>
             </div>
-            <a href="{% url 'citas:lista' %}" style="padding:10px 18px; background:#f1f5f9; border-radius:12px; color:var(--brand-dark); font-size:13px; font-weight:700; text-decoration:none; transition:0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">Ver todas</a>
+            <span class="chart-label {% if dia.es_hoy %}today{% endif %}">{{ dia.dia_corto }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="display:flex;gap:20px;margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">
+            <span style="width:10px;height:10px;border-radius:3px;background:#d1fae5;display:inline-block;"></span>
+            Completadas: <b style="color:var(--text-main);">{{ citas_completadas_semana }}</b>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">
+            <span style="width:10px;height:10px;border-radius:3px;background:#dbeafe;display:inline-block;"></span>
+            Confirmadas: <b style="color:var(--text-main);">{{ citas_confirmadas_semana }}</b>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">
+            <span style="width:10px;height:10px;border-radius:3px;background:#fef3c7;display:inline-block;"></span>
+            Pendientes: <b style="color:var(--text-main);">{{ citas_pendientes_semana }}</b>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">
+            <span style="width:10px;height:10px;border-radius:3px;background:#fee2e2;display:inline-block;"></span>
+            Canceladas: <b style="color:var(--text-main);">{{ citas_canceladas_semana }}</b>
+        </div>
+    </div>
+</div>
+
+<!-- AGENDA + SIDEBAR -->
+<div class="dashboard-layout">
+
+    <div class="glass-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:30px;">
+            <div>
+                <h3 style="font-size:22px;font-weight:800;color:var(--text-main);margin:0;letter-spacing:-0.02em;">Agenda Próxima</h3>
+                <p style="font-size:13px;color:var(--text-muted);margin-top:4px;">Citas agendadas para los próximos días</p>
+            </div>
+            <a href="{% url 'citas:lista' %}" style="padding:10px 18px;background:#f1f5f9;border-radius:12px;color:var(--brand-dark);font-size:13px;font-weight:700;text-decoration:none;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">Ver todas</a>
         </div>
 
         {% if proximas_citas %}
@@ -239,21 +326,19 @@
                     {% for cita in proximas_citas %}
                     <tr>
                         <td>
-                            <div style="font-weight:700; color:var(--text-main);">{{ cita.paciente.nombre_completo }}</div>
-                            <div style="font-size:11px; color:var(--text-muted);">DNI: {{ cita.paciente.dni|default:"---" }}</div>
+                            <div style="font-weight:700;color:var(--text-main);">{{ cita.paciente.nombre_completo }}</div>
+                            <div style="font-size:11px;color:var(--text-muted);">DNI: {{ cita.paciente.dni|default:"---" }}</div>
                         </td>
                         <td>
-                            <div style="font-weight:600; color:var(--text-main);">Dr. {{ cita.doctor.apellidos }}</div>
-                            <div style="font-size:11px; color:var(--text-muted);">{{ cita.doctor.especialidad|default:"General" }}</div>
+                            <div style="font-weight:600;color:var(--text-main);">Dr. {{ cita.doctor.apellidos }}</div>
+                            <div style="font-size:11px;color:var(--text-muted);">{{ cita.doctor.especialidad|default:"General" }}</div>
                         </td>
                         <td>
-                            <div style="font-weight:700; color:var(--brand-dark);">{{ cita.fecha_hora|date:"H:i" }}</div>
-                            <div style="font-size:11px; color:var(--text-muted);">{{ cita.fecha_hora|date:"d M, Y" }}</div>
+                            <div style="font-weight:700;color:var(--brand-dark);">{{ cita.fecha_hora|date:"H:i" }}</div>
+                            <div style="font-size:11px;color:var(--text-muted);">{{ cita.fecha_hora|date:"d M, Y" }}</div>
                         </td>
                         <td>
-                            <span class="badge badge-{{ cita.estado|lower }}">
-                                {{ cita.get_estado_display }}
-                            </span>
+                            <span class="badge badge-{{ cita.estado|lower }}">{{ cita.get_estado_display }}</span>
                         </td>
                     </tr>
                     {% endfor %}
@@ -261,59 +346,69 @@
             </table>
         </div>
         {% else %}
-        <div style="text-align:center; padding:60px 0; background:#fcfcfd; border-radius:20px; border:2px dashed #e2e8f0;">
-            <div style="font-size:40px; margin-bottom:10px;">🍃</div>
-            <p style="color:var(--text-muted); font-weight:600;">No hay citas pendientes en la agenda.</p>
+        <div style="text-align:center;padding:60px 0;background:#fcfcfd;border-radius:20px;border:2px dashed #e2e8f0;">
+            <div style="font-size:40px;margin-bottom:10px;">🍃</div>
+            <p style="color:var(--text-muted);font-weight:600;">No hay citas pendientes en la agenda.</p>
         </div>
         {% endif %}
     </div>
 
-    <div style="display:flex; flex-direction:column; gap:32px;">
-        
+    <div style="display:flex;flex-direction:column;gap:32px;">
+
         <div class="glass-panel" style="padding:28px;">
-            <h4 style="font-size:17px; font-weight:800; color:var(--text-main); margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+            <h4 style="font-size:17px;font-weight:800;color:var(--text-main);margin-bottom:20px;display:flex;align-items:center;gap:8px;">
                 <span>⚡</span> Acciones Rápidas
             </h4>
             <div class="action-stack">
-                <a href="{% url 'pacientes:crear' %}" class="btn-pro" style="background:var(--brand-dark); color:white;">
-                    <span>👤 Nuevo Paciente</span>
-                    <span style="opacity:0.6;">+</span>
+                <a href="{% url 'pacientes:crear' %}" class="btn-pro" style="background:var(--brand-dark);color:white;">
+                    <span>👤 Nuevo Paciente</span><span style="opacity:0.6;">+</span>
                 </a>
-                <a href="{% url 'citas:crear' %}" class="btn-pro" style="background:#0f766e; color:white;">
-                    <span>📅 Agendar Cita</span>
-                    <span style="opacity:0.6;">+</span>
+                <a href="{% url 'citas:crear' %}" class="btn-pro" style="background:#0f766e;color:white;">
+                    <span>📅 Agendar Cita</span><span style="opacity:0.6;">+</span>
                 </a>
-                <a href="{% url 'consultas:crear' %}" class="btn-pro" style="background:var(--brand-soft); color:var(--brand-dark); border-color:#b9f6e9;">
-                    <span>📋 Registrar Consulta</span>
-                    <span style="opacity:0.6;">→</span>
+                <a href="{% url 'consultas:crear' %}" class="btn-pro" style="background:var(--brand-soft);color:var(--brand-dark);border-color:#b9f6e9;">
+                    <span>📋 Registrar Consulta</span><span style="opacity:0.6;">→</span>
                 </a>
             </div>
         </div>
 
         <div class="glass-panel" style="padding:28px;">
-            <h4 style="font-size:17px; font-weight:800; color:var(--text-main); margin-bottom:20px;">
+            <h4 style="font-size:17px;font-weight:800;color:var(--text-main);margin-bottom:20px;">
                 Ingresos Recientes
             </h4>
-            <div style="margin-top:10px;">
-                {% for paciente in ultimos_pacientes %}
-                <a href="{% url 'pacientes:detalle' paciente.pk %}" class="recent-item">
-                    <div class="avatar-lite">
-                        {% if paciente.sexo == 'M' %}♂️{% else %}♀️{% endif %}
-                    </div>
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-size:14px; font-weight:700; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ paciente.nombre_completo }}</div>
-                        <div style="font-size:11px; color:var(--text-muted); font-weight:500;">{{ paciente.edad }} años • Sangre {{ paciente.get_tipo_sangre_display }}</div>
-                    </div>
-                    <span style="color:#cbd5e1; font-size:12px;">❯</span>
-                </a>
-                {% empty %}
-                <div style="text-align:center; padding:20px 0;">
-                    <p style="color:var(--text-muted); font-size:13px; font-weight:500;">Sin registros nuevos.</p>
+            {% for paciente in ultimos_pacientes %}
+            <a href="{% url 'pacientes:detalle' paciente.pk %}" class="recent-item">
+                <div class="avatar-lite">
+                    {% if paciente.sexo == 'M' %}♂️{% else %}♀️{% endif %}
                 </div>
-                {% endfor %}
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:14px;font-weight:700;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ paciente.nombre_completo }}</div>
+                    <div style="font-size:11px;color:var(--text-muted);font-weight:500;">{{ paciente.edad }} años • Sangre {{ paciente.tipo_sangre|default:"—" }}</div>
+                </div>
+                <span style="color:#cbd5e1;font-size:12px;">❯</span>
+            </a>
+            {% empty %}
+            <div style="text-align:center;padding:20px 0;">
+                <p style="color:var(--text-muted);font-size:13px;font-weight:500;">Sin registros nuevos.</p>
             </div>
+            {% endfor %}
         </div>
+
     </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const bars   = document.querySelectorAll('.chart-bar');
+    const counts = Array.from(bars).map(b => parseInt(b.dataset.count) || 0);
+    const maxVal = Math.max(...counts, 1);
+    const maxH   = 110;
+
+    bars.forEach((bar, i) => {
+        const pct    = counts[i] / maxVal;
+        const height = counts[i] > 0 ? Math.max(pct * maxH, 8) : 4;
+        setTimeout(() => { bar.style.height = height + 'px'; }, i * 80);
+    });
+});
+</script>
 {% endblock %}

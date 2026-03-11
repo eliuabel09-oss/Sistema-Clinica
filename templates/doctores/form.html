@@ -5,8 +5,9 @@
 {% block page_subtitle %}{% if doctor %}Gestionando el perfil del Dr. {{ doctor.apellidos }}{% else %}Complete los datos para integrar un nuevo profesional{% endif %}{% endblock %}
 
 {% block header_actions %}
-  <a href="{% url 'doctores:lista' %}" class="btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-    <span>←</span> Volver al listado
+  <a href="{% url 'doctores:lista' %}" class="btn-secondary"
+     style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+    ← Volver al listado
   </a>
 {% endblock %}
 
@@ -19,154 +20,245 @@
     max-width: 1100px;
     animation: fadeIn 0.4s ease-out;
   }
-
   .form-card {
-    background: #ffffff;
+    background: #fff;
     border-radius: 20px;
     border: 1px solid #e2e8f0;
     padding: 24px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,.02);
   }
-
   .section-title {
-    font-size: 15px;
-    font-weight: 800;
-    color: #1e293b;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #f1f5f9;
+    font-size: 15px; font-weight: 800; color: #1e293b;
+    margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+    padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;
   }
-
   .input-group { margin-bottom: 16px; }
-
+  .access-panel { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .status-badge-active {
+    background: #f0fdf4; border: 1px solid #dcfce7; color: #16a34a;
+    padding: 12px; border-radius: 12px; display: flex; align-items: center;
+    gap: 10px; font-size: 13px; font-weight: 700;
+  }
+  .change-password-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; margin-top: 10px; }
   .photo-preview-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 12px;
-    background: #f8fafc;
-    border-radius: 12px;
-    margin-top: 10px;
+    display: flex; align-items: center; gap: 15px; padding: 12px;
+    background: #f8fafc; border-radius: 12px; margin-top: 10px;
     border: 1px dashed #cbd5e1;
   }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-  /* Estilo para el panel de Acceso */
-  .access-panel {
-    position: sticky;
-    top: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
+  /* ── Horario builder ── */
+  .horario-builder { margin-top: 4px; }
 
-  .status-badge-active {
-    background: #f0fdf4;
-    border: 1px solid #dcfce7;
-    color: #16a34a;
-    padding: 12px;
-    border-radius: 12px;
-    display: flex;
+  .dia-row {
+    display: grid;
+    grid-template-columns: 36px 100px 1fr 1fr 80px;
     align-items: center;
     gap: 10px;
-    font-size: 13px;
-    font-weight: 700;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
   }
+  .dia-row:last-child { border-bottom: none; }
 
-  .change-password-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 15px;
-    border-radius: 12px;
-    margin-top: 10px;
-  }
+  .dia-lbl { font-size: 13px; font-weight: 700; color: #1e293b; transition: color .2s; }
+  .dia-lbl.off { color: #94a3b8; }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+  .time-inp {
+    padding: 8px 10px; border-radius: 10px;
+    border: 1px solid #e2e8f0; background: #f8fafc;
+    font-size: 13px; color: #1e293b; width: 100%;
+    box-sizing: border-box; transition: all .2s;
   }
+  .time-inp:focus { outline: none; border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,.1); }
+  .time-inp:disabled { opacity: .3; cursor: not-allowed; }
+
+  .horas-badge {
+    font-size: 11px; font-weight: 800; padding: 3px 8px;
+    border-radius: 20px; background: #f0fdfa; color: #0d9488;
+    text-align: center; min-width: 50px;
+    transition: all .2s;
+  }
+  .horas-badge.warn { background: #fff7ed; color: #c2410c; }
+  .horas-badge.ok   { background: #f0fdf4; color: #15803d; }
+
+  .resumen-semana {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-radius: 14px;
+    background: #f0fdfa; border: 1px solid #99f6e4;
+    margin-top: 14px; font-size: 13px; font-weight: 700;
+  }
+  .total-horas { font-size: 20px; font-weight: 900; color: #0d9488; }
+  .total-horas.warn { color: #c2410c; }
+  .total-horas.ok   { color: #15803d; }
+
+  .toggle { position: relative; display: inline-block; width: 36px; height: 20px; }
+  .toggle input { display: none; }
+  .toggle-slider {
+    position: absolute; cursor: pointer; top:0;left:0;right:0;bottom:0;
+    background: #cbd5e1; border-radius: 20px; transition: .3s;
+  }
+  .toggle-slider:before {
+    content: ''; position: absolute;
+    height: 14px; width: 14px; left: 3px; bottom: 3px;
+    background: #fff; border-radius: 50%; transition: .3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .toggle input:checked + .toggle-slider { background: #0d9488; }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+  .btn-quick {
+    background: #f0fdfa; color: #0d9488;
+    border: 1px solid #99f6e4; padding: 5px 12px;
+    border-radius: 8px; font-size: 11px; font-weight: 700;
+    cursor: pointer; transition: .15s;
+  }
+  .btn-quick:hover { background: #ccfbf1; }
 </style>
 
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" id="doctorForm">
   {% csrf_token %}
+
+  <!-- Campos ocultos para horarios (se llenan con JS antes del submit) -->
+  <div id="horarios-hidden"></div>
+
   <div class="form-grid">
 
-    <div style="display:flex; flex-direction:column; gap:20px;">
-      
+    <!-- ── Columna izquierda ── -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <!-- Datos personales -->
       <div class="form-card">
         <h3 class="section-title"><span>👨‍⚕️</span> Información del Especialista</h3>
-        
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
           <div class="input-group">
             <label class="form-label">Nombres *</label>
-            <input type="text" name="nombres" value="{{ form.nombres.value|default:'' }}" class="form-input" required placeholder="Ej: Abel Eliu">
+            <input type="text" name="nombres" value="{{ form.nombres.value|default:'' }}"
+              class="form-input" required placeholder="Ej: Abel Eliu">
           </div>
           <div class="input-group">
             <label class="form-label">Apellidos *</label>
-            <input type="text" name="apellidos" value="{{ form.apellidos.value|default:'' }}" class="form-input" required placeholder="Ej: Diaz Calero">
+            <input type="text" name="apellidos" value="{{ form.apellidos.value|default:'' }}"
+              class="form-input" required placeholder="Ej: Diaz Calero">
           </div>
 
-          <div class="input-group" style="grid-column: span 2;">
+          <div class="input-group" style="grid-column:span 2;">
             <label class="form-label">Especialidad Médica *</label>
-            <input type="text" name="especialidad" value="{{ form.especialidad.value|default:'' }}" class="form-input" required placeholder="Ej: Full Stack Developer / TI Infrastructure">
+            <input type="text" name="especialidad" value="{{ form.especialidad.value|default:'' }}"
+              class="form-input" required placeholder="Ej: Medicina General, Cardiología...">
           </div>
 
           <div class="input-group">
             <label class="form-label">Cédula Profesional *</label>
-            <input type="text" name="cedula" value="{{ form.cedula.value|default:'' }}" class="form-input" required style="font-family: monospace; font-weight: 600; color: #0d9488;">
-            {% if form.cedula.errors %}<div style="color:#ef4444; font-size:11px; margin-top:4px;">{{ form.cedula.errors.0 }}</div>{% endif %}
+            <input type="text" name="cedula" value="{{ form.cedula.value|default:'' }}"
+              class="form-input" required style="font-family:monospace;font-weight:600;color:#0d9488;">
+            {% if form.cedula.errors %}
+              <div style="color:#ef4444;font-size:11px;margin-top:4px;">{{ form.cedula.errors.0 }}</div>
+            {% endif %}
           </div>
           <div class="input-group">
             <label class="form-label">Teléfono de Contacto</label>
-            <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}" class="form-input" placeholder="949021141">
+            <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}"
+              class="form-input" placeholder="949021141">
           </div>
 
-          <div class="input-group" style="grid-column: span 2;">
+          <div class="input-group" style="grid-column:span 2;">
             <label class="form-label">Correo Electrónico</label>
-            <input type="email" name="email" value="{{ form.email.value|default:'' }}" class="form-input" placeholder="correo@ejemplo.com">
+            <input type="email" name="email" value="{{ form.email.value|default:'' }}"
+              class="form-input" placeholder="correo@ejemplo.com">
           </div>
 
-          <div class="input-group" style="grid-column: span 2;">
-            <label class="form-label">Horario Sugerido de Atención</label>
-            <input type="text" name="horario_atencion" value="{{ form.horario_atencion.value|default:'' }}" class="form-input" placeholder="Ej: Lunes a Viernes 08:00 - 16:00">
-          </div>
-
-          <div class="input-group" style="grid-column: span 2;">
+          <div class="input-group" style="grid-column:span 2;">
             <label class="form-label">Resumen Curricular / Biografía</label>
-            <textarea name="biografia" class="form-input" rows="3" placeholder="Breve descripción de la trayectoria del doctor...">{{ form.biografia.value|default:'' }}</textarea>
+            <textarea name="biografia" class="form-input" rows="3"
+              placeholder="Breve descripción de la trayectoria del doctor...">{{ form.biografia.value|default:'' }}</textarea>
           </div>
 
-          <div class="input-group" style="grid-column: span 2;">
+          <div class="input-group" style="grid-column:span 2;">
             <label class="form-label">Fotografía de Perfil</label>
-            <input type="file" name="foto" class="form-input" accept="image/*" style="padding: 8px;">
+            <input type="file" name="foto" class="form-input" accept="image/*" style="padding:8px;">
             {% if doctor.foto %}
               <div class="photo-preview-container">
-                <img src="{{ doctor.foto.url }}" style="width:45px; height:45px; border-radius:10px; object-fit:cover;">
+                <img src="{{ doctor.foto.url }}" style="width:45px;height:45px;border-radius:10px;object-fit:cover;">
                 <div>
-                  <div style="font-size:12px; font-weight:700; color:#1e293b;">Imagen actual cargada</div>
-                  <div style="font-size:11px; color:#64748b;">Suba una nueva para actualizar el perfil</div>
+                  <div style="font-size:12px;font-weight:700;color:#1e293b;">Imagen actual cargada</div>
+                  <div style="font-size:11px;color:#64748b;">Suba una nueva para actualizar el perfil</div>
                 </div>
               </div>
             {% endif %}
           </div>
-
-          <div style="grid-column: span 2; padding: 10px 0;">
-            <label style="display:flex; align-items:center; gap:12px; cursor:pointer;">
-              <input type="checkbox" name="activo" {% if form.activo.value %}checked{% endif %} style="width:18px; height:18px; accent-color:#0d9488;">
-              <div>
-                <span style="font-size:14px; font-weight:700; color:#1e293b;">Estatus Activo</span>
-                <p style="font-size:12px; color:#64748b; margin:0;">El doctor aparecerá disponible para nuevas citas y consultas.</p>
-              </div>
-            </label>
-          </div>
         </div>
       </div>
-    </div>
 
+      <!-- ── HORARIO DE ATENCIÓN ── -->
+      <div class="form-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
+          <h3 class="section-title" style="margin:0;padding:0;border:none;">
+            <span>🕐</span> Horario de Atención
+          </h3>
+          <div style="display:flex;gap:6px;">
+            <button type="button" class="btn-quick" onclick="activarLunVier()">⚡ Lun–Vie 8am–2pm</button>
+            <button type="button" class="btn-quick" onclick="limpiarHorario()">🗑️ Limpiar</button>
+          </div>
+        </div>
+
+        <p style="font-size:12px;color:#64748b;margin-bottom:14px;">
+          Mínimo <strong>6 horas por día</strong> activo · Objetivo: <strong>36 horas semanales</strong>
+        </p>
+
+        <!-- Cabecera columnas -->
+        <div style="display:grid;grid-template-columns:36px 100px 1fr 1fr 80px;gap:10px;padding-bottom:8px;border-bottom:2px solid #e2e8f0;margin-bottom:4px;">
+          <div></div>
+          <div style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;">Día</div>
+          <div style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;">Inicio</div>
+          <div style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;">Fin</div>
+          <div style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;">Horas</div>
+        </div>
+
+        <div class="horario-builder" id="horario-builder">
+          {% for dia_num, dia_nombre in dias_semana %}
+          <div class="dia-row" id="row-{{ dia_num }}">
+            <label class="toggle">
+              <input type="checkbox" id="chk-{{ dia_num }}" value="1"
+                {% if dia_num in horarios_actuales %}checked{% endif %}
+                onchange="toggleDia({{ dia_num }})">
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="dia-lbl {% if dia_num not in horarios_actuales %}off{% endif %}" id="lbl-{{ dia_num }}">
+              {{ dia_nombre }}
+            </div>
+            <input type="time" id="ini-{{ dia_num }}" class="time-inp"
+              {% if dia_num not in horarios_actuales %}disabled{% endif %}
+              onchange="calcularHoras({{ dia_num }})">
+            <input type="time" id="fin-{{ dia_num }}" class="time-inp"
+              {% if dia_num not in horarios_actuales %}disabled{% endif %}
+              onchange="calcularHoras({{ dia_num }})">
+            <div class="horas-badge" id="badge-{{ dia_num }}">—</div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Resumen semanal -->
+        <div class="resumen-semana" id="resumen-semana">
+          <div>
+            <div style="font-size:11px;color:#64748b;margin-bottom:2px;">Total semanal</div>
+            <div style="font-size:11px;color:#0d9488;">Objetivo: 36 horas/semana</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="total-horas" id="total-horas">0 h</div>
+            <div style="font-size:11px;color:#64748b;" id="total-mins"></div>
+          </div>
+        </div>
+
+        <!-- Advertencia -->
+        <div id="advertencia-horario" style="display:none;margin-top:10px;padding:10px 14px;background:#fff7ed;border:1px solid #fdba74;border-radius:10px;font-size:12px;color:#c2410c;font-weight:600;"></div>
+      </div>
+
+    </div><!-- /col izquierda -->
+
+    <!-- ── Columna derecha (acceso) ── -->
     <div class="access-panel">
-      
+
       <div class="form-card">
         <h3 class="section-title"><span>🔐</span> Seguridad y Acceso</h3>
 
@@ -174,14 +266,14 @@
           <div class="status-badge-active">
             <span>✔️</span> Usuario: <strong>@{{ doctor.usuario.username }}</strong>
           </div>
-          
           <div class="change-password-box">
-            <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer; color: #0d9488;">
-              <input type="checkbox" id="toggle_pass" onchange="document.getElementById('edit_pass_fields').style.display = this.checked ? 'block' : 'none'" style="accent-color:#0d9488;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#0d9488;">
+              <input type="checkbox" id="toggle_pass"
+                onchange="document.getElementById('edit_pass_fields').style.display = this.checked ? 'block' : 'none'"
+                style="accent-color:#0d9488;">
               <strong>Actualizar Contraseña</strong>
             </label>
-            
-            <div id="edit_pass_fields" style="display:none; margin-top:15px;">
+            <div id="edit_pass_fields" style="display:none;margin-top:15px;">
               <div class="input-group">
                 <label class="form-label">Nueva Contraseña</label>
                 <input type="password" name="password1" class="form-input" placeholder="••••••••">
@@ -190,22 +282,19 @@
                 <label class="form-label">Confirmar Contraseña</label>
                 <input type="password" name="password2" class="form-input" placeholder="••••••••">
               </div>
-              <p style="font-size:11px; color:#94a3b8; line-height:1.4;">Deje estos campos vacíos si no desea cambiar la clave actual.</p>
             </div>
           </div>
-
         {% else %}
-          <p style="font-size:13px; color:#64748b; margin-bottom:15px;">
-            Permita que el médico gestione su propia agenda creando una cuenta de acceso.
+          <p style="font-size:13px;color:#64748b;margin-bottom:15px;">
+            Permita que el médico gestione su agenda creando una cuenta de acceso.
           </p>
-
-          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin-bottom:15px; background:#f0fdfa; padding:12px; border-radius:10px; border:1px solid #ccfbf1;">
-            <input type="checkbox" name="crear_usuario" id="toggle_usuario" style="width:17px; height:17px; accent-color:#0d9488;"
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:15px;background:#f0fdfa;padding:12px;border-radius:10px;border:1px solid #ccfbf1;">
+            <input type="checkbox" name="crear_usuario" id="toggle_usuario"
+              style="width:17px;height:17px;accent-color:#0d9488;"
               onchange="document.getElementById('new_user_fields').style.display = this.checked ? 'block' : 'none'">
-            <span style="font-size:13px; font-weight:700; color:#0d9488;">Habilitar acceso al sistema</span>
+            <span style="font-size:13px;font-weight:700;color:#0d9488;">Habilitar acceso al sistema</span>
           </label>
-
-          <div id="new_user_fields" style="display:none; animation: fadeIn 0.3s;">
+          <div id="new_user_fields" style="display:none;">
             <div class="input-group">
               <label class="form-label">Nombre de usuario *</label>
               <input type="text" name="username" class="form-input" placeholder="ej: dr.diaz">
@@ -221,27 +310,28 @@
           </div>
         {% endif %}
 
-        <div style="margin-top:24px; display:flex; flex-direction:column; gap:10px;">
-          <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-weight:800; font-size:14px; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);">
+        <div style="margin-top:24px;display:flex;flex-direction:column;gap:10px;">
+          <button type="submit" class="btn-primary"
+            style="width:100%;justify-content:center;padding:12px;font-weight:800;font-size:14px;box-shadow:0 4px 12px rgba(13,148,136,.2);">
             {% if doctor %}💾 Actualizar Registro{% else %}🚀 Registrar Médico{% endif %}
           </button>
-          
           {% if doctor %}
-            <button type="button" onclick="confirmDelete()" class="btn-danger" style="width:100%; justify-content:center; padding:10px; font-size:12px; font-weight:700; background:transparent; border:1px solid #fca5a5; color:#ef4444;">
+            <button type="button" onclick="confirmDelete()"
+              style="width:100%;justify-content:center;padding:10px;font-size:12px;font-weight:700;background:transparent;border:1px solid #fca5a5;color:#ef4444;border-radius:10px;cursor:pointer;">
               🗑️ Eliminar del Sistema
             </button>
           {% endif %}
         </div>
       </div>
 
-      <div style="padding: 15px; border-radius: 16px; background: #fffbeb; border: 1px solid #fef3c7; display: flex; gap: 10px;">
+      <div style="padding:15px;border-radius:16px;background:#fffbeb;border:1px solid #fef3c7;display:flex;gap:10px;">
         <span style="font-size:18px;">💡</span>
-        <p style="font-size:11px; color:#92400e; margin:0; line-height:1.5;">
+        <p style="font-size:11px;color:#92400e;margin:0;line-height:1.5;">
           <strong>Importante:</strong> Al registrar un doctor, asegúrese de que el número de cédula sea el oficial para evitar duplicidad en el historial clínico de Sullana Health.
         </p>
       </div>
-    </div>
 
+    </div><!-- /col derecha -->
   </div>
 </form>
 
@@ -249,13 +339,178 @@
 <form id="delete-form" method="post" action="{% url 'doctores:eliminar' doctor.pk %}" style="display:none;">
   {% csrf_token %}
 </form>
-<script>
-  function confirmDelete() {
-    if (confirm('¿Está completamente seguro de eliminar al Dr. {{ doctor.apellidos }}? Esta acción borrará permanentemente sus datos y acceso.')) {
-      document.getElementById('delete-form').submit();
-    }
-  }
-</script>
 {% endif %}
 
+<script>
+// ── Horarios actuales desde Django ───────────────────────────
+const HORARIOS_ACTUALES = {
+  {% for dia_num, h in horarios_actuales.items %}
+  {{ dia_num }}: { ini: "{{ h.hora_inicio|time:'H:i' }}", fin: "{{ h.hora_fin|time:'H:i' }}" },
+  {% endfor %}
+};
+
+// Cargar valores al iniciar
+document.addEventListener('DOMContentLoaded', () => {
+  Object.entries(HORARIOS_ACTUALES).forEach(([dia, h]) => {
+    const ini = document.getElementById(`ini-${dia}`);
+    const fin = document.getElementById(`fin-${dia}`);
+    if (ini && fin) {
+      ini.value = h.ini;
+      fin.value = h.fin;
+      calcularHoras(parseInt(dia));
+    }
+  });
+  actualizarTotal();
+});
+
+// ── Toggle día ───────────────────────────────────────────────
+function toggleDia(dia) {
+  const chk    = document.getElementById(`chk-${dia}`);
+  const ini    = document.getElementById(`ini-${dia}`);
+  const fin    = document.getElementById(`fin-${dia}`);
+  const lbl    = document.getElementById(`lbl-${dia}`);
+  const badge  = document.getElementById(`badge-${dia}`);
+  const activo = chk.checked;
+
+  ini.disabled = !activo;
+  fin.disabled = !activo;
+  lbl.classList.toggle('off', !activo);
+
+  if (activo && !ini.value) {
+    ini.value = '08:00';
+    fin.value = '14:00'; // 6 horas por defecto
+    calcularHoras(dia);
+  }
+  if (!activo) {
+    badge.textContent = '—';
+    badge.className = 'horas-badge';
+  }
+  actualizarTotal();
+}
+
+// ── Calcular horas de un día ─────────────────────────────────
+function calcularHoras(dia) {
+  const ini   = document.getElementById(`ini-${dia}`).value;
+  const fin   = document.getElementById(`fin-${dia}`).value;
+  const badge = document.getElementById(`badge-${dia}`);
+
+  if (!ini || !fin) { badge.textContent = '—'; badge.className = 'horas-badge'; actualizarTotal(); return; }
+
+  const [ih, im] = ini.split(':').map(Number);
+  const [fh, fm] = fin.split(':').map(Number);
+  const mins = (fh * 60 + fm) - (ih * 60 + im);
+
+  if (mins <= 0) {
+    badge.textContent = '⚠️';
+    badge.className = 'horas-badge warn';
+    actualizarTotal();
+    return;
+  }
+
+  const horas = mins / 60;
+  badge.textContent = horas % 1 === 0 ? `${horas}h` : `${horas.toFixed(1)}h`;
+  badge.className = `horas-badge ${horas < 6 ? 'warn' : 'ok'}`;
+  actualizarTotal();
+}
+
+// ── Total semanal ────────────────────────────────────────────
+function actualizarTotal() {
+  let totalMins = 0;
+  [0,1,2,3,4,5,6].forEach(dia => {
+    const chk = document.getElementById(`chk-${dia}`);
+    if (!chk || !chk.checked) return;
+    const ini = document.getElementById(`ini-${dia}`).value;
+    const fin = document.getElementById(`fin-${dia}`).value;
+    if (!ini || !fin) return;
+    const [ih, im] = ini.split(':').map(Number);
+    const [fh, fm] = fin.split(':').map(Number);
+    const mins = (fh * 60 + fm) - (ih * 60 + im);
+    if (mins > 0) totalMins += mins;
+  });
+
+  const horas = totalMins / 60;
+  const el    = document.getElementById('total-horas');
+  const elMin = document.getElementById('total-mins');
+  const adv   = document.getElementById('advertencia-horario');
+
+  el.textContent  = `${horas % 1 === 0 ? horas : horas.toFixed(1)} h`;
+  elMin.textContent = `${totalMins} minutos totales`;
+
+  if (horas < 36) {
+    el.className = 'total-horas warn';
+    adv.style.display = 'block';
+    adv.textContent = `⚠️ Total: ${horas.toFixed(1)}h — El objetivo son 36 horas semanales. Revisa los días activos o amplía los horarios.`;
+  } else {
+    el.className = 'total-horas ok';
+    adv.style.display = 'none';
+  }
+}
+
+// ── Botón rápido Lun–Vie 8am–2pm ────────────────────────────
+function activarLunVier() {
+  [0,1,2,3,4].forEach(dia => {
+    document.getElementById(`chk-${dia}`).checked = true;
+    document.getElementById(`ini-${dia}`).disabled = false;
+    document.getElementById(`fin-${dia}`).disabled = false;
+    document.getElementById(`lbl-${dia}`).classList.remove('off');
+    document.getElementById(`ini-${dia}`).value = '08:00';
+    document.getElementById(`fin-${dia}`).value = '14:00';
+    calcularHoras(dia);
+  });
+  [5,6].forEach(dia => {
+    document.getElementById(`chk-${dia}`).checked = false;
+    document.getElementById(`ini-${dia}`).disabled = true;
+    document.getElementById(`fin-${dia}`).disabled = true;
+    document.getElementById(`lbl-${dia}`).classList.add('off');
+    document.getElementById(`badge-${dia}`).textContent = '—';
+    document.getElementById(`badge-${dia}`).className = 'horas-badge';
+  });
+  actualizarTotal();
+}
+
+function limpiarHorario() {
+  [0,1,2,3,4,5,6].forEach(dia => {
+    document.getElementById(`chk-${dia}`).checked = false;
+    document.getElementById(`ini-${dia}`).disabled = true;
+    document.getElementById(`fin-${dia}`).disabled = true;
+    document.getElementById(`ini-${dia}`).value = '';
+    document.getElementById(`fin-${dia}`).value = '';
+    document.getElementById(`lbl-${dia}`).classList.add('off');
+    document.getElementById(`badge-${dia}`).textContent = '—';
+    document.getElementById(`badge-${dia}`).className = 'horas-badge';
+  });
+  actualizarTotal();
+}
+
+// ── Empacar horarios en campos hidden antes de submit ────────
+document.getElementById('doctorForm').addEventListener('submit', function(e) {
+  const container = document.getElementById('horarios-hidden');
+  container.innerHTML = '';
+  [0,1,2,3,4,5,6].forEach(dia => {
+    const chk = document.getElementById(`chk-${dia}`);
+    if (!chk || !chk.checked) return;
+    const ini = document.getElementById(`ini-${dia}`).value;
+    const fin = document.getElementById(`fin-${dia}`).value;
+    if (!ini || !fin) return;
+
+    function addHidden(name, val) {
+      const inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = name; inp.value = val;
+      container.appendChild(inp);
+    }
+    addHidden(`dia_${dia}`, '1');
+    addHidden(`ini_${dia}`, ini);
+    addHidden(`fin_${dia}`, fin);
+  });
+});
+
+// ── Eliminar doctor ──────────────────────────────────────────
+{% if doctor %}
+function confirmDelete() {
+  if (confirm('¿Está completamente seguro de eliminar al Dr. {{ doctor.apellidos }}? Esta acción borrará permanentemente sus datos y acceso.')) {
+    document.getElementById('delete-form').submit();
+  }
+}
+{% endif %}
+</script>
 {% endblock %}

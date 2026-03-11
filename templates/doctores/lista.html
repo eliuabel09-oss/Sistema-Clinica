@@ -192,6 +192,10 @@
 
         <td style="text-align:center;">
           <div style="display:flex; gap:8px; justify-content:center;">
+            <a href="{% url 'doctores:horarios' doctor.pk %}" class="btn-edit-doc"
+               title="Configurar horarios" style="background:#f0fdfa;color:#0d9488;border-color:#99f6e4;">
+              🕐 Horarios
+            </a>
             <a href="{% url 'doctores:editar' doctor.pk %}" class="btn-edit-doc" title="Editar Perfil">
               ✏️ Editar
             </a>

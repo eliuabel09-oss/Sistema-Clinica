@@ -1,4 +1,4 @@
-# apps/pacientes/views.py — ACTUALIZADO CON ROLES
+# apps/pacientes/views.py
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -14,9 +14,10 @@ def lista(request):
     rol = get_rol(request.user)
 
     if rol == 'DOCTOR':
-        # El doctor solo ve sus pacientes (los que ha atendido)
         from apps.citas.models import Cita
-        ids = Cita.objects.filter(doctor__usuario=request.user).values_list('paciente_id', flat=True).distinct()
+        ids = Cita.objects.filter(
+            doctor__usuario=request.user
+        ).values_list('paciente_id', flat=True).distinct()
         qs = Paciente.objects.filter(pk__in=ids)
     else:
         qs = Paciente.objects.all()
@@ -24,22 +25,46 @@ def lista(request):
     q    = request.GET.get('q', '').strip()
     sexo = request.GET.get('sexo', '')
     if q:
-        qs = qs.filter(Q(nombres__icontains=q) | Q(apellidos__icontains=q) | Q(curp__icontains=q))
+        # FIX: buscar también por DNI
+        qs = qs.filter(
+            Q(nombres__icontains=q) |
+            Q(apellidos__icontains=q) |
+            Q(dni__icontains=q) |
+            Q(curp__icontains=q)
+        )
     if sexo:
         qs = qs.filter(sexo=sexo)
 
     paginator = Paginator(qs, 20)
     pacientes = paginator.get_page(request.GET.get('page'))
-    return render(request, 'pacientes/lista.html', {'pacientes': pacientes, 'total': qs.count()})
+    return render(request, 'pacientes/lista.html', {
+        'pacientes': pacientes,
+        'total': qs.count(),
+    })
 
 
 @login_required
 def detalle(request, pk):
     paciente  = get_object_or_404(Paciente, pk=pk)
+    rol       = get_rol(request.user)
+
+    # Doctor solo ve detalle de sus pacientes
+    if rol == 'DOCTOR':
+        from apps.citas.models import Cita
+        tiene_cita = Cita.objects.filter(
+            doctor__usuario=request.user, paciente=paciente
+        ).exists()
+        if not tiene_cita:
+            messages.error(request, 'No tienes permiso para ver este paciente.')
+            return redirect('pacientes:lista')
+
     citas     = paciente.citas.select_related('doctor').order_by('-fecha_hora')[:10]
     consultas = paciente.consultas.select_related('doctor').prefetch_related('recetas').order_by('-fecha')[:10]
     return render(request, 'pacientes/detalle.html', {
-        'paciente': paciente, 'citas': citas, 'consultas': consultas
+        'paciente': paciente,
+        'citas':    citas,
+        'consultas': consultas,
+        'rol':      rol,
     })
 
 

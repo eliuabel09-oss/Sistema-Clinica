@@ -19,40 +19,80 @@
       <!-- Datos generales -->
       <div class="card">
         <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">📋 Datos Generales</h3>
+
+        {% if cita_preseleccionada %}
+        <!-- Banner informativo cuando viene desde una cita -->
+        <div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:20px;">📅</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#0f766e;">Consulta vinculada a cita</div>
+            <div style="font-size:12px;color:#0d9488;">
+              {{ cita_preseleccionada.fecha_hora|date:"d/m/Y H:i" }} —
+              {{ cita_preseleccionada.paciente.nombre_completo }} —
+              Dr. {{ cita_preseleccionada.doctor.apellidos }}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
           <div style="grid-column:span 2;">
             <label class="form-label">Paciente *</label>
-            <select name="paciente" class="form-input" required>
+            <select name="paciente" class="form-input" required {% if rol == 'DOCTOR' and cita_preseleccionada %}style="background:#f8fafc;color:#64748b;"{% endif %}>
               <option value="">Seleccionar paciente...</option>
               {% for p in pacientes %}
-              <option value="{{ p.pk }}" {% if form.paciente.value|stringformat:"s" == p.pk|stringformat:"s" or request.GET.paciente == p.pk|stringformat:"s" %}selected{% endif %}>
+              <option value="{{ p.pk }}"
+                {% if cita_preseleccionada and cita_preseleccionada.paciente.pk == p.pk %}selected
+                {% elif request.GET.paciente == p.pk|stringformat:"s" %}selected
+                {% endif %}>
                 {{ p.nombre_completo }}
               </option>
               {% endfor %}
             </select>
           </div>
+
+          <!-- Doctor: si es DOCTOR se oculta y se fuerza el suyo -->
+          {% if rol == 'DOCTOR' %}
+          <input type="hidden" name="doctor" value="{{ doctor_actual.pk }}">
+          <div style="grid-column:span 2;">
+            <label class="form-label">Doctor</label>
+            <div style="padding:9px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;color:#64748b;">
+              Dr. {{ doctor_actual.apellidos }}, {{ doctor_actual.nombres }} — {{ doctor_actual.especialidad }}
+            </div>
+          </div>
+          {% else %}
           <div style="grid-column:span 2;">
             <label class="form-label">Doctor *</label>
             <select name="doctor" class="form-input" required>
               <option value="">Seleccionar doctor...</option>
               {% for d in doctores %}
-              <option value="{{ d.pk }}" {% if form.doctor.value|stringformat:"s" == d.pk|stringformat:"s" %}selected{% endif %}>
+              <option value="{{ d.pk }}"
+                {% if cita_preseleccionada and cita_preseleccionada.doctor.pk == d.pk %}selected
+                {% elif request.GET.doctor == d.pk|stringformat:"s" %}selected
+                {% endif %}>
                 Dr. {{ d.apellidos }}, {{ d.nombres }} — {{ d.especialidad }}
               </option>
               {% endfor %}
             </select>
           </div>
+          {% endif %}
+
           <div style="grid-column:span 2;">
             <label class="form-label">Cita asociada (opcional)</label>
             <select name="cita" class="form-input">
               <option value="">Sin cita asociada</option>
               {% for c in citas_disponibles %}
-              <option value="{{ c.pk }}" {% if form.cita.value|stringformat:"s" == c.pk|stringformat:"s" %}selected{% endif %}>
+              <option value="{{ c.pk }}"
+                {% if cita_preseleccionada and cita_preseleccionada.pk == c.pk %}selected
+                {% elif request.GET.cita == c.pk|stringformat:"s" %}selected
+                {% endif %}>
                 {{ c.fecha_hora|date:"d/m/Y H:i" }} — {{ c.paciente.nombre_completo }}
               </option>
               {% endfor %}
             </select>
           </div>
+
         </div>
       </div>
 
@@ -62,27 +102,27 @@
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
           <div>
             <label class="form-label">Peso (kg)</label>
-            <input type="number" name="peso_kg" value="{{ form.peso_kg.value|default:'' }}" class="form-input" step="0.1" placeholder="70.5">
+            <input type="number" name="peso_kg" class="form-input" step="0.1" placeholder="70.5">
           </div>
           <div>
             <label class="form-label">Talla (cm)</label>
-            <input type="number" name="talla_cm" value="{{ form.talla_cm.value|default:'' }}" class="form-input" step="0.1" placeholder="170">
+            <input type="number" name="talla_cm" class="form-input" step="0.1" placeholder="170">
           </div>
           <div>
             <label class="form-label">Temperatura (°C)</label>
-            <input type="number" name="temperatura" value="{{ form.temperatura.value|default:'' }}" class="form-input" step="0.1" placeholder="36.6">
+            <input type="number" name="temperatura" class="form-input" step="0.1" placeholder="36.6">
           </div>
           <div>
             <label class="form-label">Presión Arterial</label>
-            <input type="text" name="presion_arterial" value="{{ form.presion_arterial.value|default:'' }}" class="form-input" placeholder="120/80">
+            <input type="text" name="presion_arterial" class="form-input" placeholder="120/80">
           </div>
           <div>
             <label class="form-label">F. Cardíaca (lpm)</label>
-            <input type="number" name="frecuencia_cardiaca" value="{{ form.frecuencia_cardiaca.value|default:'' }}" class="form-input" placeholder="72">
+            <input type="number" name="frecuencia_cardiaca" class="form-input" placeholder="72">
           </div>
           <div>
             <label class="form-label">Saturación O2 (%)</label>
-            <input type="number" name="saturacion_o2" value="{{ form.saturacion_o2.value|default:'' }}" class="form-input" placeholder="98">
+            <input type="number" name="saturacion_o2" class="form-input" placeholder="98">
           </div>
         </div>
       </div>
@@ -90,30 +130,38 @@
       <!-- Nota SOAP -->
       <div class="card">
         <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">📝 Nota Clínica SOAP</h3>
+
+        {% if cita_preseleccionada and cita_preseleccionada.motivo %}
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:4px;">MOTIVO DE CITA (referencia)</div>
+          <div style="font-size:13px;color:#78350f;">{{ cita_preseleccionada.motivo }}</div>
+        </div>
+        {% endif %}
+
         <div style="display:flex;flex-direction:column;gap:14px;">
           <div>
             <label class="form-label" style="color:#0369a1;">S — Subjetivo</label>
-            <textarea name="subjetivo" class="form-input" rows="3" required placeholder="Motivo de consulta y síntomas referidos por el paciente...">{{ form.subjetivo.value|default:'' }}</textarea>
+            <textarea name="subjetivo" class="form-input" rows="3" required placeholder="Motivo de consulta y síntomas referidos por el paciente...">{% if cita_preseleccionada and cita_preseleccionada.motivo %}{{ cita_preseleccionada.motivo }}{% endif %}</textarea>
           </div>
           <div>
             <label class="form-label" style="color:#0d9488;">O — Objetivo</label>
-            <textarea name="objetivo" class="form-input" rows="3" required placeholder="Exploración física y hallazgos clínicos...">{{ form.objetivo.value|default:'' }}</textarea>
+            <textarea name="objetivo" class="form-input" rows="3" required placeholder="Exploración física y hallazgos clínicos..."></textarea>
           </div>
           <div>
             <label class="form-label" style="color:#7c3aed;">A — Diagnóstico</label>
-            <textarea name="diagnostico" class="form-input" rows="3" required placeholder="Diagnóstico (puedes incluir código CIE-10)...">{{ form.diagnostico.value|default:'' }}</textarea>
+            <textarea name="diagnostico" class="form-input" rows="3" required placeholder="Diagnóstico (puedes incluir código CIE-10)..."></textarea>
           </div>
           <div>
             <label class="form-label" style="color:#d97706;">P — Plan</label>
-            <textarea name="plan" class="form-input" rows="3" required placeholder="Plan de tratamiento y recomendaciones...">{{ form.plan.value|default:'' }}</textarea>
+            <textarea name="plan" class="form-input" rows="3" required placeholder="Plan de tratamiento y recomendaciones..."></textarea>
           </div>
           <div>
             <label class="form-label">Evolución / Notas adicionales</label>
-            <textarea name="evolucion" class="form-input" rows="2" placeholder="Observaciones adicionales...">{{ form.evolucion.value|default:'' }}</textarea>
+            <textarea name="evolucion" class="form-input" rows="2" placeholder="Observaciones adicionales..."></textarea>
           </div>
           <div>
             <label class="form-label">Próxima cita sugerida</label>
-            <input type="date" name="proxima_cita" value="{{ form.proxima_cita.value|default:'' }}" class="form-input" style="max-width:200px;">
+            <input type="date" name="proxima_cita" class="form-input" style="max-width:200px;">
           </div>
         </div>
       </div>
@@ -126,7 +174,7 @@
         <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px;">💊 Recetas</h3>
         <div id="recetas-container">
           <div class="receta-item" style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:10px;border:1px solid #e2e8f0;">
-            <input type="text" name="medicamento[]" class="form-input" placeholder="Medicamento" style="margin-bottom:6px;" required>
+            <input type="text" name="medicamento[]" class="form-input" placeholder="Medicamento" style="margin-bottom:6px;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
               <input type="text" name="dosis[]" class="form-input" placeholder="Dosis (ej: 500mg)">
               <input type="text" name="frecuencia[]" class="form-input" placeholder="Frecuencia">

@@ -6,8 +6,33 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from apps.core.decorators import rol_requerido
 from apps.core.models import PerfilUsuario
-from .models import Doctor, Cita
+from .models import Doctor, Cita, HorarioDoctor
 from .forms_doctores import DoctorForm, DoctorUsuarioForm
+
+
+DIAS_SEMANA = [
+    (0, 'Lunes'), (1, 'Martes'), (2, 'Miércoles'),
+    (3, 'Jueves'), (4, 'Viernes'), (5, 'Sábado'), (6, 'Domingo'),
+]
+
+
+def _guardar_horarios_doctor(doctor, post_data):
+    """Guarda los horarios del doctor desde los datos del formulario."""
+    HorarioDoctor.objects.filter(doctor=doctor).delete()
+    for dia_num, _ in DIAS_SEMANA:
+        activo   = post_data.get(f'dia_{dia_num}')
+        hora_ini = post_data.get(f'ini_{dia_num}')
+        hora_fin = post_data.get(f'fin_{dia_num}')
+        if activo and hora_ini and hora_fin:
+            try:
+                HorarioDoctor.objects.create(
+                    doctor=doctor,
+                    dia_semana=dia_num,
+                    hora_inicio=hora_ini,
+                    hora_fin=hora_fin,
+                )
+            except Exception:
+                pass
 
 
 def _asignar_rol_doctor(user):
@@ -35,7 +60,6 @@ def crear(request):
     if request.method == 'POST' and form.is_valid():
         doctor = form.save(commit=False)
 
-        # Si marcó "crear usuario"
         crear_user = request.POST.get('crear_usuario')
         if crear_user and form_usuario.is_valid():
             username  = form_usuario.cleaned_data['username']
@@ -47,17 +71,19 @@ def crear(request):
                 last_name  = doctor.apellidos,
                 email      = doctor.email,
             )
-            # Asignar rol DOCTOR — garantiza que exista el perfil
             _asignar_rol_doctor(user)
             doctor.usuario = user
 
         doctor.save()
+        _guardar_horarios_doctor(doctor, request.POST)
         messages.success(request, f'Dr. {doctor.apellidos} registrado correctamente.')
         return redirect('doctores:lista')
 
     return render(request, 'doctores/form.html', {
-        'form': form,
-        'form_usuario': form_usuario,
+        'form':              form,
+        'form_usuario':      form_usuario,
+        'dias_semana':       DIAS_SEMANA,
+        'horarios_actuales': {},
     })
 
 
@@ -72,7 +98,6 @@ def editar(request, pk):
     if request.method == 'POST' and form.is_valid():
         doctor = form.save(commit=False)
 
-        # Crear usuario si no tiene y marcó la opción
         crear_user = request.POST.get('crear_usuario')
         if crear_user and not doctor.usuario and form_usuario.is_valid():
             username = form_usuario.cleaned_data['username']
@@ -88,13 +113,20 @@ def editar(request, pk):
             doctor.usuario = user
 
         doctor.save()
+        _guardar_horarios_doctor(doctor, request.POST)
         messages.success(request, 'Doctor actualizado correctamente.')
         return redirect('doctores:lista')
 
+    horarios_actuales = {
+        h.dia_semana: h
+        for h in HorarioDoctor.objects.filter(doctor=doctor)
+    }
     return render(request, 'doctores/form.html', {
-        'form': form,
-        'form_usuario': form_usuario,
-        'doctor': doctor,
+        'form':              form,
+        'form_usuario':      form_usuario,
+        'doctor':            doctor,
+        'dias_semana':       DIAS_SEMANA,
+        'horarios_actuales': horarios_actuales,
     })
 
 
@@ -105,7 +137,6 @@ def eliminar(request, pk):
     doctor = get_object_or_404(Doctor, pk=pk)
     if request.method == 'POST':
         nombre = doctor.apellidos
-        # Eliminar también el usuario asociado si existe
         if doctor.usuario:
             doctor.usuario.delete()
         else:
@@ -114,28 +145,24 @@ def eliminar(request, pk):
     return redirect('doctores:lista')
 
 
-# ── Perfil del doctor (vista del propio doctor al loguearse) ───
+# ── Perfil del doctor ──────────────────────────────────────────
 @login_required
 @rol_requerido('DOCTOR')
 def mi_perfil(request):
     doctor = get_object_or_404(Doctor, usuario=request.user)
 
-    # Estadísticas
-    total_citas      = doctor.citas.count()
-    citas_completadas= doctor.citas.filter(estado='COMPLETADA').count()
-    citas_hoy        = doctor.citas.filter(fecha_hora__date=timezone.now().date()).count()
-    proximas_citas   = doctor.citas.filter(
+    total_citas       = doctor.citas.count()
+    citas_completadas = doctor.citas.filter(estado='COMPLETADA').count()
+    citas_hoy         = doctor.citas.filter(fecha_hora__date=timezone.now().date()).count()
+    proximas_citas    = doctor.citas.filter(
         fecha_hora__gte=timezone.now(),
         estado__in=['PENDIENTE', 'CONFIRMADA']
     ).select_related('paciente').order_by('fecha_hora')[:10]
 
-    # Pacientes únicos atendidos
     from apps.pacientes.models import Paciente
-    pacientes_ids    = doctor.citas.filter(estado='COMPLETADA').values_list('paciente_id', flat=True).distinct()
+    pacientes_ids       = doctor.citas.filter(estado='COMPLETADA').values_list('paciente_id', flat=True).distinct()
     pacientes_atendidos = Paciente.objects.filter(pk__in=pacientes_ids)
-
-    # Historial de citas recientes
-    citas_recientes  = doctor.citas.select_related('paciente').order_by('-fecha_hora')[:15]
+    citas_recientes     = doctor.citas.select_related('paciente').order_by('-fecha_hora')[:15]
 
     return render(request, 'doctores/mi_perfil.html', {
         'doctor':               doctor,
@@ -148,7 +175,7 @@ def mi_perfil(request):
     })
 
 
-# ── El doctor escribe/edita su informe en una cita ────────────
+# ── Informe del doctor en una cita ────────────────────────────
 @login_required
 @rol_requerido('DOCTOR')
 def escribir_informe(request, cita_pk):
@@ -163,3 +190,32 @@ def escribir_informe(request, cita_pk):
         return redirect('doctores:mi_perfil')
 
     return render(request, 'doctores/informe.html', {'cita': cita, 'doctor': doctor})
+
+
+# ── Editar horarios del doctor (Admin) ────────────────────────
+@login_required
+@rol_requerido('ADMIN')
+def editar_horarios(request, pk):
+    """Configura los días y horas en que un doctor atiende."""
+    doctor = get_object_or_404(Doctor, pk=pk)
+
+    DIAS = [
+        (0, 'Lunes'), (1, 'Martes'), (2, 'Miércoles'),
+        (3, 'Jueves'), (4, 'Viernes'), (5, 'Sábado'), (6, 'Domingo'),
+    ]
+
+    if request.method == 'POST':
+        _guardar_horarios_doctor(doctor, request.POST)
+        messages.success(request, f'Horarios de Dr. {doctor.apellidos} actualizados.')
+        return redirect('doctores:lista')
+
+    horarios_actuales = {
+        h.dia_semana: h
+        for h in HorarioDoctor.objects.filter(doctor=doctor)
+    }
+
+    return render(request, 'doctores/horarios.html', {
+        'doctor':            doctor,
+        'dias':              DIAS,
+        'horarios_actuales': horarios_actuales,
+    })

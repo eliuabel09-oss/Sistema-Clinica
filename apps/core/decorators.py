@@ -6,12 +6,16 @@ from functools import wraps
 
 def get_rol(user):
     """Retorna el rol del usuario: ADMIN, DOCTOR o SECRETARIA."""
+    if not user or not user.is_authenticated:
+        return None
     if user.is_superuser:
         return 'ADMIN'
     try:
         return user.perfil.rol
     except Exception:
-        return None
+        # FIX: antes devolvía None, bloqueaba todo acceso
+        # Ahora devuelve SECRETARIA como fallback seguro
+        return 'SECRETARIA'
 
 
 def rol_requerido(*roles):
@@ -31,12 +35,3 @@ def rol_requerido(*roles):
             return redirect('dashboard')
         return wrapper
     return decorator
-
-
-def login_requerido(view_func):
-    @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect(f'/login/?next={request.path}')
-        return view_func(request, *args, **kwargs)
-    return wrapper

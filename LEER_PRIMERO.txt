@@ -1,0 +1,70 @@
+╔══════════════════════════════════════════════════════════════╗
+║         BUGFIX — SULLANA HEALTH — INSTRUCCIONES              ║
+╚══════════════════════════════════════════════════════════════╝
+
+HACER EN ESTE ORDEN EXACTO:
+
+────────────────────────────────────────────────────────────────
+PASO 1 — SQL en phpMyAdmin
+────────────────────────────────────────────────────────────────
+Abre phpMyAdmin → clinica_db → SQL
+Copia y ejecuta el contenido de: agregar_dni.sql
+
+────────────────────────────────────────────────────────────────
+PASO 2 — Ejecutar migraciones Django
+────────────────────────────────────────────────────────────────
+En tu terminal (con venv activo):
+
+  python manage.py makemigrations pacientes
+  python manage.py migrate
+
+────────────────────────────────────────────────────────────────
+PASO 3 — Reemplazar archivos (copiar a tu proyecto)
+────────────────────────────────────────────────────────────────
+
+  ARCHIVO DEL ZIP                    →  DESTINO EN TU PROYECTO
+  ─────────────────────────────────────────────────────────────
+  apps/core/apps.py                  →  apps/core/apps.py
+  apps/core/decorators.py            →  apps/core/decorators.py
+  apps/pacientes/models.py           →  apps/pacientes/models.py
+  apps/pacientes/forms.py            →  apps/pacientes/forms.py
+  apps/pacientes/urls.py             →  apps/pacientes/urls.py
+  apps/consultas/urls.py             →  apps/consultas/urls.py
+
+────────────────────────────────────────────────────────────────
+PASO 4 — Reiniciar servidor
+────────────────────────────────────────────────────────────────
+  python manage.py runserver
+
+════════════════════════════════════════════════════════════════
+BUGS CORREGIDOS
+════════════════════════════════════════════════════════════════
+
+✅ apps.py        — Signal ahora se registra correctamente al
+                    iniciar Django (ready() importa signals)
+
+✅ decorators.py  — get_rol() devuelve 'SECRETARIA' en lugar de
+                    None cuando el usuario no tiene perfil
+
+✅ models.py      — Campo `dni` agregado al modelo Paciente
+                    (campo `curp` se mantiene, no se borra nada)
+                    Propiedad `documento` devuelve dni > curp > —
+
+✅ forms.py       — Campo `dni` agregado al formulario de
+                    pacientes (antes se perdía silenciosamente)
+
+✅ pacientes/urls.py — Eliminado código comentado de otras apps
+                       que no debía estar ahí
+
+✅ consultas/urls.py — Agregada URL de eliminar consulta que
+                       faltaba y causaría error al usarla
+
+════════════════════════════════════════════════════════════════
+NOTA SOBRE EL TEMPLATE DE PACIENTES
+════════════════════════════════════════════════════════════════
+En templates/pacientes/detalle.html y lista.html ya usas
+{{ paciente.dni|default:paciente.curp|default:"---" }}
+Con el nuevo campo dni eso ahora funcionará correctamente.
+
+En templates/pacientes/form.html el campo ya tiene name="dni"
+que ahora mapea al campo real del modelo.

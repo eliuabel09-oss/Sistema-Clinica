@@ -5,9 +5,11 @@
 {% block page_subtitle %}Gestión de citas y horarios{% endblock %}
 
 {% block header_actions %}
+  {% if rol != 'DOCTOR' %}
   <a href="{% url 'citas:crear' %}" class="btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
     <span>➕</span> Nueva Cita
   </a>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -233,14 +235,26 @@
 
                 <td class="td-app">
                     <div class="action-group">
+                        {% if rol != 'DOCTOR' %}
                         <a href="{% url 'citas:editar' cita.pk %}" class="btn-icon btn-edit" title="Editar">✏️</a>
+                        {% endif %}
 
                         {% if cita.estado == 'PENDIENTE' %}
                         <a href="{% url 'citas:cambiar_estado' cita.pk %}?estado=CONFIRMADA" class="btn-icon btn-check">✓ Confirmar</a>
                         {% endif %}
 
-                        {% if cita.estado != 'CANCELADA' and cita.estado != 'COMPLETADA' %}
+                        {% if cita.estado != 'CANCELADA' and cita.estado != 'COMPLETADA' and rol != 'DOCTOR' %}
                         <button type="button" class="btn-icon btn-del" onclick="confirmCancel('{% url 'citas:cambiar_estado' cita.pk %}?estado=CANCELADA')">✕</button>
+                        {% endif %}
+
+                        {% if rol == 'DOCTOR' %}
+                        {% if cita.consulta %}
+                          <a href="{% url 'consultas:detalle' cita.consulta.pk %}" class="btn-icon" style="background:#dcfce7;color:#16a34a;border-color:#bbf7d0;" title="Ver consulta ya registrada">
+                            ✅ Ver Consulta
+                          </a>
+                        {% else %}
+                          <a href="{% url 'consultas:crear' %}?cita={{ cita.pk }}" class="btn-icon" style="background:#f5f3ff;color:#7c3aed;border-color:#e9d5ff;">🩺 Consulta</a>
+                        {% endif %}
                         {% endif %}
                     </div>
                 </td>

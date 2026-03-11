@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Horarios — Dr. {{ doctor.apellidos }} — Sullana Health{% endblock %}
+{% block page_title %}Horarios de atención{% endblock %}
+{% block page_subtitle %}Dr. {{ doctor.apellidos }}, {{ doctor.nombres }} — {{ doctor.especialidad }}{% endblock %}
+
+{% block header_actions %}
+  <a href="{% url 'doctores:lista' %}" class="btn-secondary"
+     style="text-decoration:none;padding:8px 16px;font-size:13px;border-radius:10px;display:inline-flex;align-items:center;gap:5px;">
+    ← Volver
+  </a>
+{% endblock %}
+
+{% block content %}
+<style>
+  :root { --primary:#0d9488; --border:#e2e8f0; --bg:#f8fafc; --dark:#1e293b; --muted:#64748b; }
+  .horario-card { max-width:680px; margin:0 auto; background:#fff; border-radius:24px; border:1px solid var(--border); box-shadow:0 8px 24px -4px rgba(0,0,0,.04); overflow:hidden; }
+  .horario-card::before { content:''; display:block; height:5px; background:linear-gradient(90deg,var(--primary),#2dd4bf); }
+  .hcard-body { padding:32px; }
+  .dia-row { display:grid; grid-template-columns:42px 140px 1fr 1fr; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); }
+  .dia-row:last-child { border-bottom:none; }
+  .dia-nombre { font-size:14px; font-weight:700; color:var(--dark); transition:color .2s; }
+  .dia-nombre.inactive { color:#94a3b8; }
+  .time-inp { padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--bg); font-size:14px; color:var(--dark); width:100%; box-sizing:border-box; transition:all .2s; }
+  .time-inp:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(13,148,136,.1); }
+  .time-inp:disabled { opacity:.35; cursor:not-allowed; }
+  .toggle { position:relative; display:inline-block; width:42px; height:24px; }
+  .toggle input { display:none; }
+  .toggle-slider { position:absolute; cursor:pointer; top:0;left:0;right:0;bottom:0; background:#cbd5e1; border-radius:24px; transition:.3s; }
+  .toggle-slider:before { content:''; position:absolute; height:18px; width:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.3s; box-shadow:0 1px 4px rgba(0,0,0,.2); }
+  .toggle input:checked + .toggle-slider { background:var(--primary); }
+  .toggle input:checked + .toggle-slider:before { transform:translateX(18px); }
+  .btn-save { background:var(--primary); color:#fff; padding:12px 32px; border-radius:14px; font-weight:700; font-size:15px; border:none; cursor:pointer; transition:all .2s; box-shadow:0 4px 12px rgba(13,148,136,.25); }
+  .btn-save:hover { background:#0f766e; transform:translateY(-2px); }
+  .btn-quick { background:#f0fdfa; color:var(--primary); border:1px solid #99f6e4; padding:6px 14px; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; transition:.15s; }
+  .btn-quick:hover { background:#ccfbf1; }
+</style>
+
+<div class="horario-card">
+  <div class="hcard-body">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        {% if doctor.foto %}
+          <img src="{{ doctor.foto.url }}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #99f6e4;">
+        {% else %}
+          <div style="width:50px;height:50px;border-radius:50%;background:#f0fdfa;display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid #99f6e4;">👨‍⚕️</div>
+        {% endif %}
+        <div>
+          <div style="font-size:16px;font-weight:800;color:var(--dark);">Dr. {{ doctor.apellidos }}, {{ doctor.nombres }}</div>
+          <div style="font-size:12px;color:var(--muted);">{{ doctor.especialidad }}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="btn-quick" onclick="activarLunVier()">⚡ Lun–Vie 8am–6pm</button>
+        <button type="button" class="btn-quick" onclick="limpiarTodo()">🗑️ Limpiar</button>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div style="display:grid;grid-template-columns:42px 140px 1fr 1fr;gap:14px;padding-bottom:10px;border-bottom:2px solid var(--border);margin-bottom:4px;">
+        <div></div>
+        <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Día</div>
+        <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Hora inicio</div>
+        <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Hora fin</div>
+      </div>
+
+      {% for dia_num, dia_nombre in dias %}
+      <div class="dia-row" id="row-{{ dia_num }}">
+        <label class="toggle">
+          <input type="checkbox" name="dia_{{ dia_num }}" id="chk-{{ dia_num }}" value="1"
+            {% if dia_num in horarios_actuales %}checked{% endif %}
+            onchange="toggleDia({{ dia_num }})">
+          <span class="toggle-slider"></span>
+        </label>
+        <div class="dia-nombre {% if dia_num not in horarios_actuales %}inactive{% endif %}" id="lbl-{{ dia_num }}">
+          {{ dia_nombre }}
+        </div>
+        <input type="time" name="ini_{{ dia_num }}" id="ini-{{ dia_num }}" class="time-inp"
+          {% if dia_num not in horarios_actuales %}disabled{% endif %}>
+        <input type="time" name="fin_{{ dia_num }}" id="fin-{{ dia_num }}" class="time-inp"
+          {% if dia_num not in horarios_actuales %}disabled{% endif %}>
+      </div>
+      {% endfor %}
+
+      <div style="margin-top:28px;display:flex;align-items:center;gap:12px;padding-top:20px;border-top:1px solid var(--border);">
+        <button type="submit" class="btn-save">💾 Guardar Horarios</button>
+        <a href="{% url 'doctores:lista' %}" style="text-decoration:none;padding:12px 20px;border-radius:14px;font-size:14px;font-weight:600;color:var(--muted);">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const HORARIOS_ACTUALES = {
+  {% for dia_num, h in horarios_actuales.items %}
+  {{ dia_num }}: { ini: "{{ h.hora_inicio|time:'H:i' }}", fin: "{{ h.hora_fin|time:'H:i' }}" },
+  {% endfor %}
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  Object.entries(HORARIOS_ACTUALES).forEach(([dia, h]) => {
+    const ini = document.getElementById(`ini-${dia}`);
+    const fin = document.getElementById(`fin-${dia}`);
+    if (ini) ini.value = h.ini;
+    if (fin) fin.value = h.fin;
+  });
+});
+
+function toggleDia(dia) {
+  const chk = document.getElementById(`chk-${dia}`);
+  const ini = document.getElementById(`ini-${dia}`);
+  const fin = document.getElementById(`fin-${dia}`);
+  const lbl = document.getElementById(`lbl-${dia}`);
+  const activo = chk.checked;
+  ini.disabled = !activo;
+  fin.disabled = !activo;
+  lbl.classList.toggle('inactive', !activo);
+  if (activo && !ini.value) { ini.value = '08:00'; fin.value = '18:00'; }
+}
+
+function activarLunVier() {
+  [0,1,2,3,4].forEach(dia => {
+    document.getElementById(`chk-${dia}`).checked = true;
+    toggleDia(dia);
+    document.getElementById(`ini-${dia}`).value = '08:00';
+    document.getElementById(`fin-${dia}`).value = '18:00';
+  });
+  [5,6].forEach(dia => {
+    document.getElementById(`chk-${dia}`).checked = false;
+    toggleDia(dia);
+  });
+}
+
+function limpiarTodo() {
+  [0,1,2,3,4,5,6].forEach(dia => {
+    document.getElementById(`chk-${dia}`).checked = false;
+    toggleDia(dia);
+  });
+}
+</script>
+{% endblock %}

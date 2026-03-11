@@ -7,6 +7,22 @@
 {% block header_actions %}
   <a href="{% url 'consultas:lista' %}" class="btn-secondary">← Volver</a>
   <a href="{% url 'pacientes:detalle' consulta.paciente.pk %}" class="btn-secondary">👤 Ver Paciente</a>
+  {% if consulta.recetas.exists %}
+  <a href="{% url 'consultas:receta_pdf' consulta.pk %}" target="_blank"
+     class="btn-secondary"
+     style="background:#f0fdfa;color:#0d9488;border:1px solid #99f6e4;font-weight:700;">
+    🖨️ Imprimir Receta
+  </a>
+  {% endif %}
+  {% if rol == 'ADMIN' %}
+  <form method="post" action="{% url 'consultas:eliminar' consulta.pk %}" style="display:inline;"
+        onsubmit="return confirm('¿Eliminar esta consulta? Esta acción no se puede deshacer.');">
+    {% csrf_token %}
+    <button type="submit" class="btn-secondary" style="background:#fff1f2;color:#e11d48;border-color:#fecdd3;cursor:pointer;">
+      🗑️ Eliminar
+    </button>
+  </form>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -16,7 +32,7 @@
   <div style="display:flex;flex-direction:column;gap:16px;">
 
     <!-- Signos vitales -->
-    {% if consulta.peso_kg or consulta.presion_arterial or consulta.temperatura %}
+    {% if consulta.peso_kg or consulta.presion_arterial or consulta.temperatura or consulta.frecuencia_cardiaca or consulta.saturacion_o2 %}
     <div class="card">
       <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px;">📊 Signos Vitales</h3>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
@@ -25,6 +41,12 @@
           <div style="font-size:22px;font-weight:700;color:#134e4a;">{{ consulta.peso_kg }}</div>
           <div style="font-size:11px;color:#94a3b8;margin-top:2px;">kg · Peso</div>
           {% if consulta.imc %}<div style="font-size:11px;color:#0d9488;font-weight:600;margin-top:4px;">IMC: {{ consulta.imc }}</div>{% endif %}
+        </div>
+        {% endif %}
+        {% if consulta.talla_cm %}
+        <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:10px;">
+          <div style="font-size:22px;font-weight:700;color:#134e4a;">{{ consulta.talla_cm }}</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">cm · Talla</div>
         </div>
         {% endif %}
         {% if consulta.presion_arterial %}
@@ -42,7 +64,7 @@
         {% if consulta.frecuencia_cardiaca %}
         <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:10px;">
           <div style="font-size:22px;font-weight:700;color:#134e4a;">{{ consulta.frecuencia_cardiaca }}</div>
-          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">lpm · F. Cardiaca</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">lpm · F. Cardíaca</div>
         </div>
         {% endif %}
         {% if consulta.saturacion_o2 %}
@@ -79,7 +101,9 @@
       <div style="display:flex;flex-direction:column;gap:10px;">
         <div>
           <div style="font-size:11px;color:#94a3b8;font-weight:600;">Paciente</div>
-          <a href="{% url 'pacientes:detalle' consulta.paciente.pk %}" style="font-size:14px;font-weight:500;color:#0d9488;text-decoration:none;">{{ consulta.paciente.nombre_completo }}</a>
+          <a href="{% url 'pacientes:detalle' consulta.paciente.pk %}" style="font-size:14px;font-weight:500;color:#0d9488;text-decoration:none;">
+            {{ consulta.paciente.nombre_completo }}
+          </a>
         </div>
         <div>
           <div style="font-size:11px;color:#94a3b8;font-weight:600;">Doctor</div>
@@ -90,9 +114,15 @@
           <div style="font-size:11px;color:#94a3b8;font-weight:600;">Fecha</div>
           <div style="font-size:14px;color:#1e293b;">{{ consulta.fecha|date:"d/m/Y H:i" }}</div>
         </div>
+        {% if consulta.cita %}
+        <div>
+          <div style="font-size:11px;color:#94a3b8;font-weight:600;">Cita vinculada</div>
+          <div style="font-size:13px;color:#0d9488;">{{ consulta.cita.fecha_hora|date:"d/m/Y H:i" }}</div>
+        </div>
+        {% endif %}
         {% if consulta.proxima_cita %}
         <div>
-          <div style="font-size:11px;color:#94a3b8;font-weight:600;">Próxima cita</div>
+          <div style="font-size:11px;color:#94a3b8;font-weight:600;">Próxima cita sugerida</div>
           <div style="font-size:14px;color:#0d9488;font-weight:600;">{{ consulta.proxima_cita|date:"d/m/Y" }}</div>
         </div>
         {% endif %}
@@ -101,13 +131,17 @@
 
     <!-- Recetas -->
     <div class="card">
-      <h3 class="brand" style="font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;">💊 Recetas ({{ consulta.recetas.count }})</h3>
+      <h3 class="brand" style="font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;">
+        💊 Recetas ({{ consulta.recetas.count }})
+      </h3>
       {% for receta in consulta.recetas.all %}
       <div style="padding:10px;background:#f0fdf4;border-radius:8px;margin-bottom:8px;border:1px solid #bbf7d0;">
         <div style="font-size:14px;font-weight:600;color:#14532d;">{{ receta.medicamento }}</div>
         <div style="font-size:12px;color:#16a34a;margin-top:2px;">{{ receta.dosis }} · {{ receta.frecuencia }}</div>
         <div style="font-size:12px;color:#64748b;">Duración: {{ receta.duracion }}</div>
-        {% if receta.indicaciones %}<div style="font-size:12px;color:#64748b;margin-top:4px;font-style:italic;">{{ receta.indicaciones }}</div>{% endif %}
+        {% if receta.indicaciones %}
+        <div style="font-size:12px;color:#64748b;margin-top:4px;font-style:italic;">{{ receta.indicaciones }}</div>
+        {% endif %}
       </div>
       {% empty %}
       <div style="font-size:13px;color:#94a3b8;text-align:center;padding:12px 0;">Sin medicamentos recetados</div>

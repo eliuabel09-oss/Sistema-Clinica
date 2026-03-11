@@ -7,7 +7,9 @@ class PacienteForm(forms.ModelForm):
     class Meta:
         model  = Paciente
         fields = [
-            'nombres', 'apellidos', 'fecha_nacimiento', 'sexo', 'curp',
+            'nombres', 'apellidos', 'fecha_nacimiento', 'sexo',
+            'dni',                   # FIX: campo dni agregado
+            'curp',                  # se mantiene opcional
             'tipo_sangre', 'telefono', 'email', 'direccion',
             'alergias', 'antecedentes', 'enfermedades_cronicas', 'activo',
         ]
