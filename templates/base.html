@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Sullana Health{% endblock %}</title>
+  <title>{% block title %}Sullana System{% endblock %}</title>
+  <link rel="icon" type="image/jpeg" href="{% static 'img/logo.jpg' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/output.css' %}">
@@ -173,23 +174,23 @@
   <aside class="sidebar" style="display:flex;flex-direction:column;position:sticky;top:0;height:100vh;">
     <div style="padding:28px 24px;border-bottom:1px solid #f1f5f9;">
       <div style="display:flex;align-items:center;gap:14px;">
-        <div style="width:40px;height:40px;background:#0d9488;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow: 0 4px 12px rgba(13,148,136,0.2);">
-          <span style="color:#fff;font-size:20px;">🏥</span>
+        <div style="width:40px;height:40px;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;flex-shrink:0;">
+          <img src="{% static 'img/logo.jpg' %}" alt="Sullana System" style="width:100%;height:100%;object-fit:cover;">
         </div>
         <div>
           <div class="brand" style="font-size:16px;font-weight:800;color:#134e4a;line-height:1.1;">Sullana</div>
-          <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Health System</div>
+          <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">System</div>
         </div>
       </div>
     </div>
 
     <div style="padding:16px 24px;border-bottom:1px solid #f1f5f9;">
       {% if request.user.is_superuser or rol == 'ADMIN' %}
-        <span style="background:#fffbeb;color:#92400e;padding:6px 12px;border-radius:99px;font-size:11px;font-weight:800;border:1px solid #fef3c7;">⭐ Administrador</span>
+        <span style="background:#fffbeb;color:#92400e;padding:6px 12px;border-radius:99px;font-size:11px;font-weight:800;border:1px solid #fef3c7;">Administrador</span>
       {% elif rol == 'DOCTOR' %}
-        <span style="background:#eff6ff;color:#1e40af;padding:6px 12px;border-radius:99px;font-size:11px;font-weight:800;border:1px solid #dbeafe;">👨‍⚕️ Doctor</span>
+        <span style="background:#eff6ff;color:#1e40af;padding:6px 12px;border-radius:99px;font-size:11px;font-weight:800;border:1px solid #dbeafe;">Doctor</span>
       {% else %}
-        <span style="background:#f8fafc;color:#475569;padding:6px 12px;border-radius:99px;font-size:11px;font-weight:800;border:1px solid #e2e8f0;">📋 Secretaria</span>
+        <span style="background:#f8fafc;color:#475569;padding:6px 12px;border-radius:99px;font-size:11px;font-weight:800;border:1px solid #e2e8f0;">Secretaria</span>
       {% endif %}
     </div>
 
@@ -197,38 +198,38 @@
       {% if rol == 'DOCTOR' and not request.user.is_superuser %}
         <div class="sidebar-section">Mi espacio</div>
         <a href="{% url 'doctores:mi_perfil' %}" class="sidebar-link {% block nav_mi_perfil %}{% endblock %}">
-          <span>👨‍⚕️</span> Mi Perfil
+          Mi Perfil
         </a>
         <a href="{% url 'citas:lista' %}" class="sidebar-link {% block nav_citas %}{% endblock %}">
-          <span>📅</span> Mis Citas
+          Mis Citas
         </a>
         <a href="{% url 'pacientes:lista' %}" class="sidebar-link {% block nav_pacientes %}{% endblock %}">
-          <span>👤</span> Mis Pacientes
+          Mis Pacientes
         </a>
       {% else %}
         <div class="sidebar-section">Principal</div>
         <a href="{% url 'dashboard' %}" class="sidebar-link {% block nav_dashboard %}{% endblock %}">
-          <span>📊</span> Panel de Control
+          Panel de Control
         </a>
 
         <div class="sidebar-section">Módulos</div>
         <a href="{% url 'pacientes:lista' %}" class="sidebar-link {% block nav_pacientes2 %}{% endblock %}">
-          <span>👤</span> Pacientes
+          Pacientes
         </a>
         <a href="{% url 'citas:lista' %}" class="sidebar-link {% block nav_citas2 %}{% endblock %}">
-          <span>📅</span> Citas
+          Citas
         </a>
         <a href="{% url 'consultas:lista' %}" class="sidebar-link {% block nav_consultas %}{% endblock %}">
-          <span>📋</span> Consultas
+          Consultas
         </a>
 
         {% if request.user.is_superuser or rol == 'ADMIN' %}
         <div class="sidebar-section">Administración</div>
         <a href="{% url 'doctores:lista' %}" class="sidebar-link {% block nav_doctores %}{% endblock %}">
-          <span>👨‍⚕️</span> Doctores
+          Doctores
         </a>
         <a href="{% url 'usuarios:lista' %}" class="sidebar-link {% block nav_usuarios %}{% endblock %}">
-          <span>👥</span> Usuarios
+          Usuarios
         </a>
         {% endif %}
       {% endif %}
@@ -237,7 +238,7 @@
     <div style="padding:20px;background:#fcfcfd;border-top:1px solid #f1f5f9;">
       <div style="display:flex;align-items:center;gap:12px;">
         <div style="width:38px;height:38px;background:#ccfbf1;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
-          {% if rol == 'DOCTOR' %}👨‍⚕️{% elif rol == 'ADMIN' %}⭐{% else %}📋{% endif %}
+          {% if rol == 'DOCTOR' %}D{% elif rol == 'ADMIN' %}A{% else %}S{% endif %}
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">

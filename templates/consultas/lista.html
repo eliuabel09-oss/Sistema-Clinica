@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}Consultas — Sullana Health{% endblock %}
+{% block title %}Consultas — Sullana System{% endblock %}
 {% block nav_consultas %}active{% endblock %}
 {% block page_title %}Consultas Médicas{% endblock %}
 {% block page_subtitle %}Historial clínico y registro de atenciones{% endblock %}
 
 {% block header_actions %}
   <a href="{% url 'consultas:crear' %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700;">
-    <span>➕</span> Nueva Consulta
+    Nueva Consulta
   </a>
 {% endblock %}
 
@@ -162,7 +162,7 @@
     <div style="display: flex; gap: 8px;">
       <button type="submit" class="btn-primary" style="font-weight: 700;">Filtrar</button>
       {% if request.GET.q or request.GET.doctor %}
-        <a href="{% url 'consultas:lista' %}" class="btn-secondary" style="text-decoration: none; padding: 10px 15px; border-radius: 10px; display: flex; align-items: center;">✕</a>
+        <a href="{% url 'consultas:lista' %}" class="btn-secondary" style="text-decoration: none; padding: 10px 15px; border-radius: 10px; display: flex; align-items: center;">Limpiar</a>
       {% endif %}
     </div>
   </form>
@@ -184,8 +184,8 @@
       {% for consulta in consultas %}
       <tr class="tr-interactive">
         <td style="padding: 18px 20px 18px 25px;">
-          <div style="font-size:14px; font-weight:700; color:#1e293b;">📅 {{ consulta.fecha|date:"d/m/Y" }}</div>
-          <div style="font-size:12px; color:#94a3b8; margin-left: 20px;">{{ consulta.fecha|date:"H:i" }} hrs</div>
+          <div style="font-size:14px; font-weight:700; color:#1e293b;">{{ consulta.fecha|date:"d/m/Y" }}</div>
+          <div style="font-size:12px; color:#94a3b8;">{{ consulta.fecha|date:"H:i" }} hrs</div>
         </td>
         
         <td>
@@ -204,7 +204,7 @@
         
         <td>
           <div style="font-size:14px; color:#475569; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-            <span style="opacity: 0.6;">👨‍⚕️</span> Dr. {{ consulta.doctor.apellidos }}
+            Dr. {{ consulta.doctor.apellidos }}
           </div>
         </td>
         
@@ -216,7 +216,7 @@
         
         <td style="text-align:center;">
           {% if consulta.recetas.exists %}
-            <span class="badge-receta-pro">💊 {{ consulta.recetas.count }}</span>
+            <span class="badge-receta-pro">{{ consulta.recetas.count }} receta{{ consulta.recetas.count|pluralize }}</span>
           {% else %}
             <span style="color:#cbd5e1; font-size:12px;">Sin receta</span>
           {% endif %}
@@ -231,7 +231,6 @@
       {% empty %}
       <tr>
         <td colspan="6" style="padding: 80px 20px; text-align:center;">
-          <div style="font-size:48px; margin-bottom:15px; opacity: 0.3;">📋</div>
           <p style="color:#64748b; font-weight: 600; font-size: 15px;">No se encontraron registros de consultas médicas.</p>
           <a href="{% url 'consultas:crear' %}" style="color:#0d9488; font-size: 14px; font-weight: 700;">Crear primera consulta</a>
         </td>
@@ -242,7 +241,7 @@
 
   {% if consultas.has_other_pages %}
     <div style="padding: 15px 25px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
-      Mostrando historial de atenciones de Sullana Health
+      Mostrando historial de atenciones de Sullana System
     </div>
   {% endif %}
 </div>

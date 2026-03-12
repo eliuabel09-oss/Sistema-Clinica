@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Usuarios — Sullana Health{% endblock %}
+{% block title %}Usuarios — Sullana System{% endblock %}
 {% block nav_usuarios %}active{% endblock %}
 {% block page_title %}Usuarios{% endblock %}
 {% block page_subtitle %}Administración de accesos al sistema{% endblock %}
 
 {% block header_actions %}
-  <a href="{% url 'usuarios:crear' %}" class="btn-primary">➕ Nuevo Usuario</a>
+  <a href="{% url 'usuarios:crear' %}" class="btn-primary">Nuevo Usuario</a>
 {% endblock %}
 
 {% block content %}
@@ -30,7 +30,7 @@
               {% if usuario.is_superuser %}background:#fef3c7;
               {% elif usuario.perfil.rol == 'ADMIN' %}background:#fef3c7;
               {% else %}background:#f1f5f9;{% endif %}">
-              {% if usuario.is_superuser or usuario.perfil.rol == 'ADMIN' %}⭐{% else %}📋{% endif %}
+              {{ usuario.username|slice:":2"|upper }}
             </div>
             <div>
               <div style="font-size:14px;font-weight:600;color:#1e293b;">{{ usuario.username }}</div>
@@ -51,11 +51,11 @@
 
         <td style="padding:14px 16px;text-align:center;">
           {% if usuario.is_superuser %}
-            <span class="badge" style="background:#fef3c7;color:#92400e;">⭐ Superusuario</span>
+            <span class="badge" style="background:#fef3c7;color:#92400e;">Superusuario</span>
           {% elif usuario.perfil.rol == 'ADMIN' %}
-            <span class="badge" style="background:#fef3c7;color:#92400e;">⭐ Administrador</span>
+            <span class="badge" style="background:#fef3c7;color:#92400e;">Administrador</span>
           {% elif usuario.perfil.rol == 'SECRETARIA' %}
-            <span class="badge" style="background:#f1f5f9;color:#475569;">📋 Secretaria</span>
+            <span class="badge" style="background:#f1f5f9;color:#475569;">Secretaria</span>
           {% else %}
             <span class="badge" style="background:#f1f5f9;color:#64748b;">{{ usuario.perfil.get_rol_display }}</span>
           {% endif %}
@@ -64,11 +64,11 @@
         <td style="padding:14px 16px;text-align:center;">
           {% if not usuario.is_superuser or usuario == request.user %}
           <div style="display:flex;gap:6px;justify-content:center;">
-            <a href="{% url 'usuarios:editar' usuario.pk %}" style="padding:5px 12px;background:#f8fafc;color:#475569;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #e2e8f0;">✏️ Editar</a>
+            <a href="{% url 'usuarios:editar' usuario.pk %}" style="padding:5px 12px;background:#f8fafc;color:#475569;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #e2e8f0;">Editar</a>
             {% if usuario != request.user %}
             <form method="post" action="{% url 'usuarios:eliminar' usuario.pk %}" onsubmit="return confirm('¿Eliminar al usuario {{ usuario.username }}?')">
               {% csrf_token %}
-              <button type="submit" style="padding:5px 12px;background:#fff;color:#dc2626;border-radius:6px;font-size:12px;font-weight:600;border:1px solid #fca5a5;cursor:pointer;">🗑</button>
+              <button type="submit" style="padding:5px 12px;background:#fff;color:#dc2626;border-radius:6px;font-size:12px;font-weight:600;border:1px solid #fca5a5;cursor:pointer;">Eliminar</button>
             </form>
             {% endif %}
           </div>
@@ -81,8 +81,7 @@
       {% empty %}
       <tr>
         <td colspan="5" style="padding:60px;text-align:center;color:#94a3b8;">
-          <div style="font-size:36px;margin-bottom:12px;">👥</div>
-          <div style="font-size:15px;">No hay usuarios registrados</div>
+          <div style="font-size:15px;font-weight:600;">No hay usuarios registrados</div>
           <a href="{% url 'usuarios:crear' %}" style="color:#0d9488;font-weight:600;font-size:13px;margin-top:8px;display:inline-block;">Crear el primero</a>
         </td>
       </tr>
