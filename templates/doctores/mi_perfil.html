@@ -1,311 +1,575 @@
 {% extends 'base.html' %}
-{% block title %}Mi Perfil — Dr. {{ doctor.apellidos }}{% endblock %}
+{% block title %}Dr. {{ doctor.apellidos }} — Sullana System{% endblock %}
 {% block nav_mi_perfil %}active{% endblock %}
 {% block page_title %}Panel del Especialista{% endblock %}
-{% block page_subtitle %}Bienvenido de nuevo, Dr. {{ doctor.apellidos }}{% endblock %}
+{% block page_subtitle %}Dr. {{ doctor.apellidos }} · {{ doctor.especialidad }}{% endblock %}
 
 {% block content %}
 <style>
-  .profile-grid {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 24px;
-    animation: fadeIn 0.5s ease-out;
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@400;500;600;700;800;900&display=swap');
+
+  :root {
+    --teal:      #0d9488;
+    --teal-d:    #0f766e;
+    --teal-xd:   #134e4a;
+    --teal-soft: #ccfbf1;
+    --teal-lt:   #f0fdfa;
+    --slate:     #0f172a;
+    --mid:       #64748b;
+    --lt:        #94a3b8;
+    --border:    #e9eeee;
+    --surf:      #ffffff;
+    --mono:      'DM Mono', monospace;
+    --sans:      'Sora', sans-serif;
+    --sh1: 0 1px 3px rgba(15,23,42,.05), 0 1px 2px rgba(15,23,42,.03);
+    --sh2: 0 4px 16px rgba(15,23,42,.07), 0 2px 6px rgba(15,23,42,.04);
+    --sht: 0 10px 36px rgba(13,148,136,.14), 0 3px 10px rgba(15,23,42,.05);
+  }
+  *, *::before, *::after { font-family: var(--sans); box-sizing: border-box; }
+
+  /* ═══════════════════════ HERO ═══════════════════════ */
+  .hero {
+    position: relative; border-radius: 26px; overflow: hidden;
+    margin-bottom: 20px; box-shadow: var(--sht);
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 90% 70% at 105% 40%, rgba(20,184,166,.3) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 90% at -5% 25%, rgba(15,118,110,.45) 0%, transparent 50%),
+      linear-gradient(130deg, #0b3836 0%, #0f766e 50%, #0d9488 100%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 1;
+    background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .hero-orb {
+    position: absolute; border-radius: 50%; z-index: 1;
+  }
+  .hero-orb1 { width:320px;height:320px; right:-80px; top:-80px;
+    background: radial-gradient(circle, rgba(255,255,255,.06) 0%, transparent 70%); }
+  .hero-orb2 { width:180px;height:180px; right:160px; bottom:-50px;
+    background: radial-gradient(circle, rgba(94,234,212,.15) 0%, transparent 70%); }
+
+  .hero-inner {
+    position: relative; z-index: 2;
+    padding: 32px 38px;
+    display: flex; align-items: center; gap: 28px;
   }
 
-  .profile-card {
-    background: #ffffff;
-    border-radius: 20px;
-    border: 1px solid #e2e8f0;
-    padding: 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  /* avatar */
+  .hav-wrap { position:relative; flex-shrink:0; }
+  .hav-wrap::before {
+    content:''; position:absolute; inset:-3px; border-radius:24px; z-index:0;
+    background: linear-gradient(135deg, rgba(255,255,255,.45), rgba(255,255,255,.08));
+  }
+  .hav {
+    position:relative; z-index:1;
+    width:88px; height:88px; border-radius:20px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background: rgba(255,255,255,.12); backdrop-filter:blur(10px);
+    font-size:24px; font-weight:900; color:#fff; letter-spacing:-.04em;
+    border:1.5px solid rgba(255,255,255,.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 6px 18px rgba(0,0,0,.22);
   }
 
-  .avatar-container {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    margin: 0 auto 16px;
+  /* texto hero */
+  .htxt { flex:1; }
+  .h-chip {
+    display:inline-flex; align-items:center; gap:5px;
+    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16);
+    padding:3px 11px; border-radius:20px; backdrop-filter:blur(6px);
+    font-size:9px; font-weight:800; color:rgba(255,255,255,.8);
+    text-transform:uppercase; letter-spacing:.1em; margin-bottom:9px;
   }
+  .h-chip::before { content:''; width:5px;height:5px;border-radius:50%;background:#5eead4;display:block; }
+  .h-name { font-size:28px; font-weight:900; color:#fff; letter-spacing:-.04em; line-height:1.05; }
+  .h-esp  { font-size:13px; font-weight:500; color:rgba(255,255,255,.6); margin-top:5px; }
+  .h-ced  { font-family:var(--mono); font-size:10px; color:rgba(255,255,255,.35); margin-top:7px; letter-spacing:.06em; }
 
-  .avatar-img {
-    width: 100%; height: 100%;
-    border-radius: 24px;
-    object-fit: cover;
-    border: 4px solid #f0fdfa;
-    box-shadow: 0 8px 16px rgba(13,148,136,0.1);
+  .h-pills { display:flex; gap:7px; margin-top:14px; flex-wrap:wrap; }
+  .h-pill {
+    display:flex; align-items:baseline; gap:5px;
+    padding:5px 13px; border-radius:9px;
+    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.14);
+    backdrop-filter:blur(8px); transition:background .18s;
   }
+  .h-pill:hover { background:rgba(255,255,255,.17); }
+  .h-pn { font-size:14px; font-weight:900; color:#fff; }
+  .h-pl { font-size:9px; font-weight:600; color:rgba(255,255,255,.55); }
 
-  .avatar-placeholder {
-    width: 100%; height: 100%;
-    background: #ccfbf1;
-    border-radius: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 42px;
+  /* reloj */
+  .h-clock {
+    position:absolute; right:38px; top:50%; transform:translateY(-50%); z-index:2;
+    text-align:right;
   }
+  .ck-time { font-family:var(--mono); font-size:36px; font-weight:400; color:rgba(255,255,255,.12); line-height:1; letter-spacing:-.03em; }
+  .ck-date { font-size:10px; font-weight:600; color:rgba(255,255,255,.2); margin-top:3px; }
 
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+  /* ═══════════════════════ STATS ROW ═══════════════════════ */
+  .stats-row {
+    display:grid; grid-template-columns:repeat(5,1fr); gap:11px; margin-bottom:20px;
   }
-
-  .stat-item {
-    padding: 18px 12px;
-    border-radius: 16px;
-    text-align: center;
-    transition: transform 0.2s;
-    border: 1px solid #f1f5f9;
+  .sk {
+    background:var(--surf); border-radius:18px; border:1px solid var(--border);
+    padding:18px 16px 14px; position:relative; overflow:hidden;
+    box-shadow:var(--sh1); cursor:default;
+    transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
   }
-
-  .stat-item:hover { transform: translateY(-3px); }
-
-  .stat-value {
-    font-size: 24px;
-    font-weight: 800;
-    display: block;
-    line-height: 1;
-    margin-bottom: 4px;
+  .sk:hover { transform:translateY(-4px); box-shadow:var(--sh2); }
+  .sk::before {
+    content:''; position:absolute; top:0;left:0;right:0; height:3px;
+    background:linear-gradient(90deg, var(--k1), var(--k2));
   }
-
-  .stat-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  .sk-n { font-size:34px; font-weight:900; color:var(--k1); line-height:1; letter-spacing:-.05em; }
+  .sk-l { font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--lt); margin-top:7px; }
+  .sk-s { font-size:10px; color:#a8b8c8; font-weight:500; margin-top:2px; }
+  .sk-tag {
+    display:inline-flex; align-items:center; gap:3px;
+    font-size:9px; font-weight:800; padding:2px 6px; border-radius:5px; margin-top:5px;
   }
+  .tag-g { background:#dcfce7; color:#15803d; }
+  .tag-y { background:#fef9c3; color:#a16207; }
+  .tag-n { background:#f1f5f9; color:#64748b; }
 
-  .appointment-row {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    border-radius: 16px;
-    margin-bottom: 8px;
-    border: 1px solid #f8fafc;
-    transition: all 0.2s;
+  /* ring */
+  .sk-ring { position:absolute; bottom:12px; right:12px; width:36px; height:36px; }
+  .sk-ring svg { transform:rotate(-90deg); }
+  .sk-ring circle { fill:none; stroke-width:2.5; stroke-linecap:round; }
+  .rt { stroke:#eef2f2; }
+  .rp { stroke:var(--k1); transition: stroke-dashoffset .9s cubic-bezier(.34,1.56,.64,1) .35s; }
+
+  /* ═══════════════════════ LAYOUT 2 COLS ═══════════════════════ */
+  .layout { display:grid; grid-template-columns:272px 1fr; gap:16px; align-items:start; }
+
+  /* ── SIDEBAR ── */
+  .sc {
+    background:var(--surf); border-radius:18px; border:1px solid var(--border);
+    overflow:hidden; margin-bottom:12px; box-shadow:var(--sh1);
   }
-
-  .appointment-row:hover {
-    background: #f8fafc;
-    border-color: #e2e8f0;
+  .sc-h {
+    padding:11px 16px; font-size:8.5px; font-weight:800;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--lt);
+    background:#f9fbfb; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:7px;
   }
-
-  .date-badge {
-    width: 52px; height: 52px;
-    background: #f0fdfa;
-    border-radius: 14px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #ccfbf1;
-    flex-shrink: 0;
+  .sc-h::before {
+    content:''; width:3px; height:12px; border-radius:2px;
+    background:linear-gradient(180deg,var(--teal),var(--teal-d)); display:block;
   }
+  .sc-b { padding:12px 16px; }
 
-  .patient-mini-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: #ffffff;
-    border-radius: 14px;
-    border: 1px solid #f1f5f9;
-    text-decoration: none;
-    transition: all 0.2s;
+  /* contacto */
+  .ci { display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid #f3f7f7; }
+  .ci:last-child { border-bottom:none; padding-bottom:0; }
+  .ci-i { width:28px;height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ci-l { font-size:8px; font-weight:800; color:var(--lt); text-transform:uppercase; letter-spacing:.05em; }
+  .ci-v { font-size:12.5px; font-weight:600; color:var(--slate); margin-top:2px; line-height:1.3; }
+
+  /* horario */
+  .hr { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #f3f7f7; }
+  .hr:last-child { border-bottom:none; }
+  .hr-d { font-size:11px; font-weight:600; color:var(--mid); }
+  .hr-h { font-family:var(--mono); font-size:9.5px; color:var(--teal); background:var(--teal-lt); border:1px solid var(--teal-soft); padding:2px 8px; border-radius:5px; }
+
+  /* resumen 2x2 */
+  .res-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+  .res-item {
+    border-radius:11px; padding:10px 11px; border:1px solid;
+    transition: transform .18s;
   }
+  .res-item:hover { transform:translateY(-2px); }
+  .res-n { font-size:22px; font-weight:900; line-height:1; letter-spacing:-.04em; }
+  .res-l { font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--lt); margin-top:4px; }
 
-  .patient-mini-card:hover {
-    border-color: #0d9488;
-    background: #f0fdfa;
-    box-shadow: 0 4px 10px rgba(13,148,136,0.05);
+  /* barra progreso */
+  .prog-wrap { margin-bottom:13px; }
+  .prog-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+  .prog-lbl { font-size:9px; font-weight:700; color:var(--lt); text-transform:uppercase; letter-spacing:.06em; }
+  .prog-val { font-family:var(--mono); font-size:10px; font-weight:600; color:var(--teal); }
+  .prog-bar { height:5px; background:#eef2f2; border-radius:3px; overflow:hidden; }
+  .prog-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--teal),#14b8a6); width:0%; transition:width 1s cubic-bezier(.34,1.56,.64,1) .4s; }
+
+  /* citas recientes mini */
+  .mini-cita { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid #f3f7f7; }
+  .mini-cita:last-child { border-bottom:none; }
+  .mini-dot { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
+  .mini-n { font-size:12px; font-weight:700; color:var(--slate); }
+  .mini-d { font-size:10px; color:var(--lt); font-family:var(--mono); }
+
+  /* ── MAIN ── */
+  .mc { background:var(--surf); border-radius:18px; border:1px solid var(--border); padding:20px 22px; margin-bottom:12px; box-shadow:var(--sh1); }
+  .mc-h { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+  .mc-t { font-size:14px; font-weight:800; color:var(--slate); letter-spacing:-.02em; }
+  .mc-s { font-size:10px; color:var(--lt); margin-top:2px; }
+
+  /* cita row */
+  .cr {
+    display:flex; align-items:center; gap:12px;
+    padding:12px 13px; border-radius:13px; border:1px solid #f0f5f5;
+    margin-bottom:7px; transition:all .18s; background:#fcfffe; position:relative;
   }
-
-  .cita-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    align-items: flex-end;
+  .cr::before {
+    content:''; position:absolute; left:0;top:0;bottom:0; width:3px;
+    background:linear-gradient(180deg,var(--teal),#14b8a6);
+    opacity:0; transition:opacity .18s; border-radius:3px 0 0 3px;
   }
+  .cr:hover { background:var(--teal-lt); border-color:var(--teal-soft); box-shadow:0 3px 10px rgba(13,148,136,.07); }
+  .cr:hover::before { opacity:1; }
 
-  .cita-action-btn {
-    font-size: 11px;
-    font-weight: 700;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
-    border-radius: 8px;
-    transition: background 0.2s;
-  }
+  /* date chip */
+  .dc { width:46px;height:46px; border-radius:12px; display:flex;flex-direction:column; align-items:center;justify-content:center; flex-shrink:0; background:var(--teal-lt); border:1px solid var(--teal-soft); position:relative; overflow:hidden; }
+  .dc::before { content:''; position:absolute;top:0;left:0;right:0;height:2.5px; background:linear-gradient(90deg,var(--teal),#14b8a6); }
+  .dc-d { font-size:17px;font-weight:900;color:var(--teal);line-height:1;margin-top:2px; }
+  .dc-m { font-size:7px;font-weight:700;color:#5eead4;text-transform:uppercase;letter-spacing:.04em; }
 
-  .cita-action-btn:hover { opacity: 0.8; }
+  /* botones cita */
+  .cb { font-size:10.5px;font-weight:700;text-decoration:none;padding:5px 12px;border-radius:8px;display:inline-flex;align-items:center;white-space:nowrap;transition:all .14s; }
+  .cb:hover { filter:brightness(.93); transform:translateY(-1px); }
+  .cb-g  { color:#15803d;background:#dcfce7;border:1px solid #bbf7d0; }
+  .cb-p  { color:#6d28d9;background:#ede9fe;border:1px solid #ddd6fe; }
+  .cb-t  { color:var(--teal-d);background:var(--teal-lt);border:1px solid var(--teal-soft); }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  /* badge estado */
+  .badge { padding:2px 9px;border-radius:20px;font-size:9.5px;font-weight:700;display:inline-block;letter-spacing:.02em; }
+  .badge-pendiente  { background:#fef9c3;color:#92400e; }
+  .badge-confirmada { background:#dbeafe;color:#1e40af; }
+  .badge-completada { background:#dcfce7;color:#14532d; }
+  .badge-cancelada  { background:#fee2e2;color:#991b1b; }
+  .badge-no_asistio { background:#f1f5f9;color:#475569; }
+
+  /* pacientes */
+  .pg { display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:9px; }
+  .pc { display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fafbfc;border-radius:12px;border:1px solid var(--border);text-decoration:none;transition:all .18s;position:relative;overflow:hidden; }
+  .pc::after { content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--teal),#14b8a6);transform:scaleX(0);transform-origin:left;transition:transform .22s; }
+  .pc:hover { background:var(--teal-lt);border-color:var(--teal-soft);transform:translateY(-2px);box-shadow:0 5px 14px rgba(13,148,136,.09); }
+  .pc:hover::after { transform:scaleX(1); }
+  .pa { width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex-shrink:0;letter-spacing:-.02em; }
+
+  /* vacío */
+  .emp { text-align:center;padding:40px 20px; }
+  .emp-l { width:24px;height:3px;background:var(--teal-soft);border-radius:2px;margin:0 auto 12px; }
+  .emp-t { font-size:13px;font-weight:700;color:var(--mid); }
+  .emp-s { font-size:11px;color:var(--lt);margin-top:3px; }
+
+  /* link btn */
+  .lbtn { font-size:10.5px;font-weight:700;text-decoration:none;padding:6px 14px;border-radius:9px;background:#f3f8f8;color:var(--teal-d);border:1px solid var(--border);transition:all .15s;display:inline-block; }
+  .lbtn:hover { background:var(--teal-lt);border-color:var(--teal-soft); }
+
+  /* ── ANIMACIONES ── */
+  .e { opacity:0; animation: up .48s cubic-bezier(.22,1,.36,1) forwards; }
+  .e:nth-child(1){animation-delay:.04s}.e:nth-child(2){animation-delay:.09s}
+  .e:nth-child(3){animation-delay:.14s}.e:nth-child(4){animation-delay:.18s}
+  .e:nth-child(5){animation-delay:.22s}.e:nth-child(6){animation-delay:.26s}
+  .e:nth-child(7){animation-delay:.30s}
+  @keyframes up { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
+
+  @media(max-width:1100px){ .stats-row{grid-template-columns:repeat(3,1fr)} }
+  @media(max-width:900px) { .layout{grid-template-columns:1fr} .h-clock{display:none} }
+  @media(max-width:560px) { .stats-row{grid-template-columns:repeat(2,1fr)} }
 </style>
 
-<div class="profile-grid">
+{# ── HERO ── #}
+<div class="hero e">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-orb hero-orb1"></div>
+  <div class="hero-orb hero-orb2"></div>
+  <div class="hero-inner">
+    <div class="hav-wrap">
+      <div class="hav">
+        {% if doctor.foto %}<img src="{{ doctor.foto.url }}" style="width:100%;height:100%;object-fit:cover;">
+        {% else %}{{ doctor.apellidos|slice:":2"|upper }}{% endif %}
+      </div>
+    </div>
+    <div class="htxt">
+      <div class="h-chip">Especialista activo</div>
+      <div class="h-name">Dr. {{ doctor.nombre_completo }}</div>
+      <div class="h-esp">{{ doctor.especialidad }}</div>
+      <div class="h-ced">CÉD. {{ doctor.cedula }}</div>
+      <div class="h-pills">
+        <div class="h-pill"><span class="h-pn">{{ total_citas }}</span><span class="h-pl">citas totales</span></div>
+        <div class="h-pill"><span class="h-pn">{{ pacientes_atendidos.count }}</span><span class="h-pl">pacientes</span></div>
+        {% if citas_hoy > 0 %}<div class="h-pill" style="background:rgba(251,191,36,.18);border-color:rgba(251,191,36,.28);"><span class="h-pn">{{ citas_hoy }}</span><span class="h-pl">hoy</span></div>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="h-clock">
+    <div class="ck-time" id="hTime">--:--</div>
+    <div class="ck-date" id="hDate">---</div>
+  </div>
+</div>
 
-  <!-- Columna izquierda: datos del doctor -->
-  <div style="display:flex;flex-direction:column;gap:20px;">
+{# ── STATS ── #}
+<div class="stats-row">
+  <div class="sk e" style="--k1:#0d9488;--k2:#14b8a6;">
+    <div class="sk-n">{{ total_citas }}</div>
+    <div class="sk-l">Total Citas</div>
+    <div class="sk-s">{{ citas_completadas }} completadas</div>
+    <span class="sk-tag tag-g">↑ Activo</span>
+    <div class="sk-ring"><svg viewBox="0 0 36 36" width="36" height="36">
+      <circle class="rt" cx="18" cy="18" r="15" stroke-dasharray="94.2"/>
+      <circle class="rp" cx="18" cy="18" r="15" stroke-dasharray="94.2" data-v="{{ citas_completadas|default:0 }}" data-t="{{ total_citas|default:1 }}"/>
+    </svg></div>
+  </div>
+  <div class="sk e" style="--k1:#0891b2;--k2:#06b6d4;">
+    <div class="sk-n">{{ citas_hoy }}</div>
+    <div class="sk-l">Citas Hoy</div>
+    <div class="sk-s">{{ hoy|date:"d M" }}</div>
+    {% if citas_hoy > 0 %}<span class="sk-tag tag-y">Agenda activa</span>{% else %}<span class="sk-tag tag-n">Sin citas</span>{% endif %}
+    <div class="sk-ring"><svg viewBox="0 0 36 36" width="36" height="36">
+      <circle class="rt" cx="18" cy="18" r="15" stroke-dasharray="94.2"/>
+      <circle class="rp" cx="18" cy="18" r="15" stroke-dasharray="94.2" data-v="{{ citas_hoy }}" data-t="10"/>
+    </svg></div>
+  </div>
+  <div class="sk e" style="--k1:#16a34a;--k2:#22c55e;">
+    <div class="sk-n">{{ citas_completadas }}</div>
+    <div class="sk-l">Completadas</div>
+    <div class="sk-s">{% if total_citas > 0 %}{{ citas_completadas }}/{{ total_citas }}{% else %}—{% endif %}</div>
+    <span class="sk-tag tag-g">Buen ratio</span>
+    <div class="sk-ring"><svg viewBox="0 0 36 36" width="36" height="36">
+      <circle class="rt" cx="18" cy="18" r="15" stroke-dasharray="94.2"/>
+      <circle class="rp" cx="18" cy="18" r="15" stroke-dasharray="94.2" data-v="{{ citas_completadas }}" data-t="{{ total_citas|default:1 }}"/>
+    </svg></div>
+  </div>
+  <div class="sk e" style="--k1:#7c3aed;--k2:#a855f7;">
+    <div class="sk-n">{{ pacientes_atendidos.count }}</div>
+    <div class="sk-l">Pacientes</div>
+    <div class="sk-s">En historial</div>
+    <span class="sk-tag tag-g">Atendidos</span>
+    <div class="sk-ring"><svg viewBox="0 0 36 36" width="36" height="36">
+      <circle class="rt" cx="18" cy="18" r="15" stroke-dasharray="94.2"/>
+      <circle class="rp" cx="18" cy="18" r="15" stroke-dasharray="94.2" data-v="{{ pacientes_atendidos.count }}" data-t="50"/>
+    </svg></div>
+  </div>
+  <div class="sk e" style="--k1:#f59e0b;--k2:#fbbf24;">
+    <div class="sk-n">{{ proximas_citas|length }}</div>
+    <div class="sk-l">Próximas</div>
+    <div class="sk-s">En agenda</div>
+    {% if proximas_citas|length > 0 %}<span class="sk-tag tag-y">Pendientes</span>{% else %}<span class="sk-tag tag-n">Libre</span>{% endif %}
+    <div class="sk-ring"><svg viewBox="0 0 36 36" width="36" height="36">
+      <circle class="rt" cx="18" cy="18" r="15" stroke-dasharray="94.2"/>
+      <circle class="rp" cx="18" cy="18" r="15" stroke-dasharray="94.2" data-v="{{ proximas_citas|length }}" data-t="10"/>
+    </svg></div>
+  </div>
+</div>
 
-    <div class="profile-card" style="text-align:center;">
-      <div class="avatar-container">
-        {% if doctor.foto %}
-          <img src="{{ doctor.foto.url }}" class="avatar-img">
+{# ── LAYOUT ── #}
+<div class="layout">
+
+  {# ═══ SIDEBAR ═══ #}
+  <aside>
+
+    {# Contacto #}
+    <div class="sc e">
+      <div class="sc-h">Contacto</div>
+      <div class="sc-b">
+        <div class="ci">
+          <div class="ci-i" style="background:#ecfdf5;">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          </div>
+          <div><div class="ci-l">Teléfono</div><div class="ci-v">{{ doctor.telefono|default:"—" }}</div></div>
+        </div>
+        <div class="ci">
+          <div class="ci-i" style="background:#eef2ff;">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#6366f1" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          </div>
+          <div><div class="ci-l">Email</div><div class="ci-v" style="font-size:11.5px;word-break:break-all;">{{ doctor.email|default:"—" }}</div></div>
+        </div>
+      </div>
+    </div>
+
+    {# Horario #}
+    <div class="sc e">
+      <div class="sc-h">Horario Asignado</div>
+      <div class="sc-b" style="padding:10px 16px;">
+        {% with hs=doctor.horarios.all %}{% if hs %}
+          {% for h in hs %}
+          <div class="hr">
+            <span class="hr-d">{{ h.get_dia_semana_display }}</span>
+            <span class="hr-h">{{ h.hora_inicio|time:"H:i" }}–{{ h.hora_fin|time:"H:i" }}</span>
+          </div>
+          {% endfor %}
         {% else %}
-          <div class="avatar-placeholder">👨‍⚕️</div>
-        {% endif %}
-      </div>
-      <h2 style="font-size:20px;font-weight:800;color:#1e293b;margin-bottom:8px;">Dr. {{ doctor.nombre_completo }}</h2>
-      <span style="background:#0d9488;color:#fff;padding:6px 16px;border-radius:12px;font-size:12px;font-weight:700;display:inline-block;box-shadow:0 4px 10px rgba(13,148,136,0.2);">
-        {{ doctor.especialidad }}
-      </span>
-      <div style="margin-top:16px;font-size:12px;font-weight:600;color:#94a3b8;background:#f8fafc;padding:8px;border-radius:10px;">
-        ID Profesional: {{ doctor.cedula }}
+          <div style="text-align:center;padding:12px 0;font-size:11px;color:var(--lt);">Sin horario asignado</div>
+        {% endif %}{% endwith %}
       </div>
     </div>
 
-    <div class="stats-grid">
-      <div class="profile-card stat-item" style="background:#f0fdfa;">
-        <span class="stat-value" style="color:#134e4a;">{{ total_citas }}</span>
-        <span class="stat-label">Total Citas</span>
-      </div>
-      <div class="profile-card stat-item" style="background:#ecfeff;">
-        <span class="stat-value" style="color:#0891b2;">{{ citas_hoy }}</span>
-        <span class="stat-label">Hoy</span>
-      </div>
-      <div class="profile-card stat-item">
-        <span class="stat-value" style="color:#0d9488;">{{ citas_completadas }}</span>
-        <span class="stat-label">Completadas</span>
-      </div>
-      <div class="profile-card stat-item">
-        <span class="stat-value" style="color:#7c3aed;">{{ pacientes_atendidos.count }}</span>
-        <span class="stat-label">Pacientes</span>
-      </div>
-    </div>
-
-    <div class="profile-card">
-      <h4 style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:15px;">
-        Datos de Contacto
-      </h4>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#475569;">
-          <span style="font-size:16px;">📞</span> {{ doctor.telefono|default:"No registrado" }}
+    {# Resumen + progreso — siempre visible #}
+    <div class="sc e">
+      <div class="sc-h">Resumen General</div>
+      <div class="sc-b">
+        <div class="prog-wrap">
+          <div class="prog-hd">
+            <span class="prog-lbl">Tasa de completadas</span>
+            <span class="prog-val">{{ citas_completadas }}/{{ total_citas }}</span>
+          </div>
+          <div class="prog-bar">
+            <div class="prog-fill" id="progFill"
+                 data-v="{{ citas_completadas|default:0 }}" data-t="{{ total_citas|default:1 }}"></div>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#475569;">
-          <span style="font-size:16px;">✉️</span> {{ doctor.email|default:"No registrado" }}
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#475569;">
-          <span style="font-size:16px;">🕐</span> {{ doctor.horario_atencion|default:"Sin horario" }}
+        <div class="res-grid">
+          <div class="res-item" style="background:#f0fdfa;border-color:var(--teal-soft);">
+            <div class="res-n" style="color:var(--teal);">{{ citas_hoy }}</div>
+            <div class="res-l">Hoy</div>
+          </div>
+          <div class="res-item" style="background:#f5f3ff;border-color:#ddd6fe;">
+            <div class="res-n" style="color:#7c3aed;">{{ proximas_citas|length }}</div>
+            <div class="res-l">Próximas</div>
+          </div>
+          <div class="res-item" style="background:#f0fdf4;border-color:#bbf7d0;">
+            <div class="res-n" style="color:#16a34a;">{{ citas_completadas }}</div>
+            <div class="res-l">Listas</div>
+          </div>
+          <div class="res-item" style="background:#fef9c3;border-color:#fde68a;">
+            <div class="res-n" style="color:#d97706;">{{ pacientes_atendidos.count }}</div>
+            <div class="res-l">Pacientes</div>
+          </div>
         </div>
       </div>
     </div>
 
-    {% if doctor.biografia %}
-    <div class="profile-card">
-      <h4 style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:10px;">Perfil Profesional</h4>
-      <p style="font-size:13px;color:#64748b;line-height:1.6;font-style:italic;">"{{ doctor.biografia|truncatechars:150 }}"</p>
+    {# Historial reciente — usa citas_recientes del context #}
+    {% if citas_recientes %}
+    <div class="sc e">
+      <div class="sc-h">Últimas Atendidas</div>
+      <div class="sc-b" style="padding:10px 16px;">
+        {% for cita in citas_recientes|slice:":6" %}
+        <div class="mini-cita">
+          <div class="mini-dot" style="background:{% if cita.estado == 'COMPLETADA' %}#16a34a{% elif cita.estado == 'CANCELADA' %}#dc2626{% else %}#f59e0b{% endif %};"></div>
+          <div style="flex:1;min-width:0;">
+            <div class="mini-n" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ cita.paciente.nombre_completo }}</div>
+            <div class="mini-d">{{ cita.fecha_hora|date:"d M · H:i" }}</div>
+          </div>
+          <span class="badge badge-{{ cita.estado|lower }}" style="font-size:8px;padding:1px 7px;">{{ cita.get_estado_display }}</span>
+        </div>
+        {% endfor %}
+      </div>
     </div>
     {% endif %}
 
-  </div>
-
-  <!-- Columna derecha: agenda y pacientes -->
-  <div style="display:flex;flex-direction:column;gap:20px;">
-
-    <div class="profile-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <h3 style="font-size:17px;font-weight:800;color:#1e293b;display:flex;align-items:center;gap:10px;">
-          <span style="color:#0d9488;">🗓️</span> Próximas Consultas
-        </h3>
-        <a href="{% url 'citas:lista' %}" class="btn-secondary" style="font-size:11px;padding:6px 14px;border-radius:10px;font-weight:700;">Ver Historial</a>
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        {% for cita in proximas_citas %}
-        <div class="appointment-row">
-
-          <!-- Fecha -->
-          <div class="date-badge">
-            <span style="font-size:16px;font-weight:800;color:#0d9488;line-height:1;">{{ cita.fecha_hora|date:"d" }}</span>
-            <span style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;">{{ cita.fecha_hora|date:"M" }}</span>
-          </div>
-
-          <!-- Info -->
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:15px;font-weight:700;color:#1e293b;">{{ cita.paciente.nombre_completo }}</div>
-            <div style="font-size:12px;color:#64748b;font-weight:500;">
-              <span style="color:#0d9488;">●</span>
-              {{ cita.fecha_hora|date:"H:i" }} hrs
-              {% if cita.tipo %} — {{ cita.get_tipo_display }}{% endif %}
-            </div>
-          </div>
-
-          <!-- Acciones: FIX div duplicado eliminado -->
-          <div style="text-align:right;">
-            <span class="badge badge-{{ cita.estado|lower }}" style="font-size:10px;padding:4px 10px;border-radius:8px;">
-              {{ cita.get_estado_display }}
-            </span>
-            <div class="cita-actions" style="margin-top:6px;">
-              {% if cita.consulta %}
-                <a href="{% url 'consultas:detalle' cita.consulta.pk %}"
-                   class="cita-action-btn" style="color:#16a34a;background:#dcfce7;" title="Consulta ya registrada">
-                  ✅ Ver Consulta
-                </a>
-              {% else %}
-                <a href="{% url 'consultas:crear' %}?cita={{ cita.pk }}"
-                   class="cita-action-btn" style="color:#7c3aed;background:#f5f3ff;">
-                  🩺 Registrar Consulta
-                </a>
-              {% endif %}
-              <a href="{% url 'doctores:informe' cita.pk %}"
-                 class="cita-action-btn" style="color:#0d9488;background:#f0fdfa;">
-                {% if cita.informe_doctor %}✏️ Editar Informe{% else %}📝 Generar Informe{% endif %}
-              </a>
-            </div>
-          </div>
-
-        </div>
-        {% empty %}
-        <div style="text-align:center;padding:40px;background:#fcfdfe;border-radius:20px;border:1px dashed #e2e8f0;">
-          <div style="font-size:32px;margin-bottom:10px;">✨</div>
-          <p style="color:#94a3b8;font-size:14px;font-weight:500;">No tienes citas programadas para los próximos días.</p>
-        </div>
-        {% endfor %}
+    {% if doctor.biografia %}
+    <div class="sc e">
+      <div class="sc-h">Perfil Profesional</div>
+      <div class="sc-b">
+        <p style="font-size:12px;color:#64748b;line-height:1.65;font-style:italic;margin:0;border-left:2px solid var(--teal-soft);padding-left:10px;">"{{ doctor.biografia|truncatechars:200 }}"</p>
       </div>
     </div>
+    {% endif %}
 
-    <div class="profile-card">
-      <h3 style="font-size:17px;font-weight:800;color:#1e293b;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
-        <span style="color:#0d9488;">👤</span> Pacientes Atendidos
-      </h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));gap:12px;">
-        {% for paciente in pacientes_atendidos %}
-        <a href="{% url 'pacientes:detalle' paciente.pk %}" class="patient-mini-card">
-          <div style="width:40px;height:40px;background:{% if paciente.sexo == 'M' %}#eff6ff{% else %}#fff1f2{% endif %};border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;">
-            {% if paciente.sexo == 'M' %}👨{% else %}👩{% endif %}
+  </aside>
+
+  {# ═══ MAIN ═══ #}
+  <main>
+
+    {# Próximas Consultas #}
+    <div class="mc e">
+      <div class="mc-h">
+        <div>
+          <div class="mc-t">Próximas Consultas</div>
+          <div class="mc-s">Citas pendientes y confirmadas</div>
+        </div>
+        <a href="{% url 'citas:lista' %}" class="lbtn">Ver historial</a>
+      </div>
+
+      {% for cita in proximas_citas %}
+      <div class="cr">
+        <div class="dc">
+          <div class="dc-d">{{ cita.fecha_hora|date:"d" }}</div>
+          <div class="dc-m">{{ cita.fecha_hora|date:"M" }}</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13.5px;font-weight:700;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ cita.paciente.nombre_completo }}</div>
+          <div style="font-size:10.5px;color:var(--lt);margin-top:3px;display:flex;align-items:center;gap:6px;">
+            <span style="width:5px;height:5px;border-radius:50%;background:var(--teal);display:inline-block;flex-shrink:0;"></span>
+            <span style="font-family:var(--mono);">{{ cita.fecha_hora|date:"H:i" }} hrs</span>
+            {% if cita.tipo %}<span style="color:#d1dae2;">·</span><span>{{ cita.get_tipo_display }}</span>{% endif %}
           </div>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:#1e293b;">{{ paciente.nombre_completo }}</div>
-            <div style="font-size:11px;color:#94a3b8;font-weight:600;">{{ paciente.edad }} años · Historial</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+          <span class="badge badge-{{ cita.estado|lower }}">{{ cita.get_estado_display }}</span>
+          <div style="display:flex;gap:5px;">
+            {% if cita.consulta %}
+              <a href="{% url 'consultas:detalle' cita.consulta.pk %}" class="cb cb-g">Ver Consulta</a>
+            {% else %}
+              <a href="{% url 'consultas:crear' %}?cita={{ cita.pk }}" class="cb cb-p">Registrar</a>
+            {% endif %}
+            <a href="{% url 'doctores:informe' cita.pk %}" class="cb cb-t">{% if cita.informe_doctor %}Editar Informe{% else %}Informe{% endif %}</a>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="emp">
+        <div class="emp-l"></div>
+        <div class="emp-t">Sin citas próximas</div>
+        <div class="emp-s">Tu agenda está libre por ahora</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# Pacientes Atendidos #}
+    <div class="mc e">
+      <div class="mc-h">
+        <div>
+          <div class="mc-t">Pacientes Atendidos</div>
+          <div class="mc-s">{{ pacientes_atendidos.count }} registros en historial</div>
+        </div>
+      </div>
+      <div class="pg">
+        {% for paciente in pacientes_atendidos %}
+        <a href="{% url 'pacientes:detalle' paciente.pk %}" class="pc">
+          <div class="pa" style="background:{% if paciente.sexo == 'M' %}#eff6ff;color:#1d4ed8{% else %}#fdf2f8;color:#9d174d{% endif %};">{{ paciente.apellidos|slice:":2"|upper }}</div>
+          <div style="min-width:0;">
+            <div style="font-size:12.5px;font-weight:700;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ paciente.nombre_completo }}</div>
+            <div style="font-size:10px;color:var(--lt);">{{ paciente.edad }} años</div>
           </div>
         </a>
         {% empty %}
-        <div style="grid-column:1/-1;text-align:center;padding:20px;color:#94a3b8;font-size:13px;">
-          Tu lista de pacientes aparecerá aquí conforme realices consultas.
+        <div style="grid-column:1/-1;">
+          <div class="emp" style="padding:26px;">
+            <div class="emp-l"></div>
+            <div class="emp-s">Los pacientes aparecerán aquí conforme realices consultas.</div>
+          </div>
         </div>
         {% endfor %}
       </div>
     </div>
 
-  </div>
+  </main>
 </div>
+
+<script>
+(function(){
+  // Reloj
+  const D=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const M=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  function p(n){return String(n).padStart(2,'0');}
+  function tick(){
+    const n=new Date();
+    const t=document.getElementById('hTime'),d=document.getElementById('hDate');
+    if(t) t.textContent=p(n.getHours())+':'+p(n.getMinutes());
+    if(d) d.textContent=D[n.getDay()]+' '+n.getDate()+' '+M[n.getMonth()];
+  }
+  tick(); setInterval(tick,1000);
+
+  // Rings
+  document.querySelectorAll('.rp').forEach(c=>{
+    const v=parseFloat(c.dataset.v)||0, t=parseFloat(c.dataset.t)||1;
+    const circ=94.2, off=circ-Math.min(v/t,1)*circ;
+    c.style.strokeDashoffset=circ;
+    requestAnimationFrame(()=>setTimeout(()=>{c.style.strokeDashoffset=off;},400));
+  });
+
+  // Barra progreso
+  const pf=document.getElementById('progFill');
+  if(pf){
+    const v=parseFloat(pf.dataset.v)||0,t=parseFloat(pf.dataset.t)||1;
+    setTimeout(()=>{pf.style.width=Math.min(v/t*100,100)+'%';},350);
+  }
+})();
+</script>
 {% endblock %}

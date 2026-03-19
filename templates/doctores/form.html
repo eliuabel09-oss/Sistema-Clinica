@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{% if doctor %}Editar Doctor{% else %}Nuevo Doctor{% endif %} — Sullana Health{% endblock %}
+{% block title %}{% if doctor %}Editar Doctor{% else %}Nuevo Doctor{% endif %} — Sullana System{% endblock %}
 {% block nav_doctores %}active{% endblock %}
 {% block page_title %}{% if doctor %}Configuración de Especialista{% else %}Registro de Médico{% endif %}{% endblock %}
 {% block page_subtitle %}{% if doctor %}Gestionando el perfil del Dr. {{ doctor.apellidos }}{% else %}Complete los datos para integrar un nuevo profesional{% endif %}{% endblock %}
@@ -128,7 +128,7 @@
 
       <!-- Datos personales -->
       <div class="form-card">
-        <h3 class="section-title"><span>👨‍⚕️</span> Información del Especialista</h3>
+        <h3 class="section-title">Información del Especialista</h3>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
           <div class="input-group">
@@ -193,12 +193,10 @@
       <!-- ── HORARIO DE ATENCIÓN ── -->
       <div class="form-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;">
-          <h3 class="section-title" style="margin:0;padding:0;border:none;">
-            <span>🕐</span> Horario de Atención
-          </h3>
+          <h3 class="section-title" style="margin:0;padding:0;border:none;">Horario de Atención</h3>
           <div style="display:flex;gap:6px;">
-            <button type="button" class="btn-quick" onclick="activarLunVier()">⚡ Lun–Vie 8am–2pm</button>
-            <button type="button" class="btn-quick" onclick="limpiarHorario()">🗑️ Limpiar</button>
+            <button type="button" class="btn-quick" onclick="activarLunVier()">Lun–Vie 8am–2pm</button>
+            <button type="button" class="btn-quick" onclick="limpiarHorario()">Limpiar</button>
           </div>
         </div>
 
@@ -260,11 +258,11 @@
     <div class="access-panel">
 
       <div class="form-card">
-        <h3 class="section-title"><span>🔐</span> Seguridad y Acceso</h3>
+        <h3 class="section-title">Seguridad y Acceso</h3>
 
         {% if doctor and doctor.usuario %}
           <div class="status-badge-active">
-            <span>✔️</span> Usuario: <strong>@{{ doctor.usuario.username }}</strong>
+            Usuario activo: <strong>@{{ doctor.usuario.username }}</strong>
           </div>
           <div class="change-password-box">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#0d9488;">
@@ -313,21 +311,21 @@
         <div style="margin-top:24px;display:flex;flex-direction:column;gap:10px;">
           <button type="submit" class="btn-primary"
             style="width:100%;justify-content:center;padding:12px;font-weight:800;font-size:14px;box-shadow:0 4px 12px rgba(13,148,136,.2);">
-            {% if doctor %}💾 Actualizar Registro{% else %}🚀 Registrar Médico{% endif %}
+            {% if doctor %}Actualizar Registro{% else %}Registrar Médico{% endif %}
           </button>
           {% if doctor %}
             <button type="button" onclick="confirmDelete()"
               style="width:100%;justify-content:center;padding:10px;font-size:12px;font-weight:700;background:transparent;border:1px solid #fca5a5;color:#ef4444;border-radius:10px;cursor:pointer;">
-              🗑️ Eliminar del Sistema
+              Eliminar del Sistema
             </button>
           {% endif %}
         </div>
       </div>
 
       <div style="padding:15px;border-radius:16px;background:#fffbeb;border:1px solid #fef3c7;display:flex;gap:10px;">
-        <span style="font-size:18px;">💡</span>
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#92400e" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg>
         <p style="font-size:11px;color:#92400e;margin:0;line-height:1.5;">
-          <strong>Importante:</strong> Al registrar un doctor, asegúrese de que el número de cédula sea el oficial para evitar duplicidad en el historial clínico de Sullana Health.
+          <strong>Importante:</strong> Al registrar un doctor, asegúrese de que el número de cédula sea el oficial para evitar duplicidad en el historial clínico de Sullana System.
         </p>
       </div>
 
@@ -401,7 +399,7 @@ function calcularHoras(dia) {
   const mins = (fh * 60 + fm) - (ih * 60 + im);
 
   if (mins <= 0) {
-    badge.textContent = '⚠️';
+    badge.textContent = '!';
     badge.className = 'horas-badge warn';
     actualizarTotal();
     return;
@@ -439,7 +437,7 @@ function actualizarTotal() {
   if (horas < 36) {
     el.className = 'total-horas warn';
     adv.style.display = 'block';
-    adv.textContent = `⚠️ Total: ${horas.toFixed(1)}h — El objetivo son 36 horas semanales. Revisa los días activos o amplía los horarios.`;
+    adv.textContent = `Total: ${horas.toFixed(1)}h — El objetivo son 36 horas semanales. Revisa los días activos o amplía los horarios.`;
   } else {
     el.className = 'total-horas ok';
     adv.style.display = 'none';
@@ -512,75 +510,5 @@ function confirmDelete() {
   }
 }
 {% endif %}
-
-  /* ── Validaciones en tiempo real ───────────────────── */
-  (function() {
-    function err(inp, msg) {
-      inp.style.borderColor = '#ef4444';
-      inp.style.boxShadow   = '0 0 0 3px rgba(239,68,68,.1)';
-      let el = inp.parentElement.querySelector('.v-err');
-      if (!el) { el = document.createElement('div'); el.className = 'v-err'; el.style.cssText = 'color:#ef4444;font-size:11px;font-weight:600;margin-top:4px;'; inp.parentElement.appendChild(el); }
-      el.textContent = '⚠ ' + msg;
-    }
-    function ok(inp) {
-      inp.style.borderColor = '#22c55e';
-      inp.style.boxShadow   = '0 0 0 3px rgba(34,197,94,.1)';
-      const el = inp.parentElement.querySelector('.v-err'); if (el) el.remove();
-    }
-    function reset(inp) { inp.style.borderColor = ''; inp.style.boxShadow = ''; const el = inp.parentElement.querySelector('.v-err'); if (el) el.remove(); }
-
-    // Nombres / apellidos: solo letras
-    ['nombres','apellidos'].forEach(n => {
-      const inp = document.querySelector('input[name="' + n + '"]');
-      if (!inp) return;
-      inp.addEventListener('input', function() {
-        this.value = this.value.replace(/[^A-Za-z\u00e0-\u00ff\s\-]/g, '');
-        if (this.value.trim().length >= 2) ok(this);
-        else if (this.value.length > 0) err(this, 'Mínimo 2 caracteres');
-        else reset(this);
-      });
-    });
-
-    // Teléfono: 9 dígitos empieza con 9
-    const tel = document.querySelector('input[name="telefono"]');
-    if (tel) {
-      tel.setAttribute('maxlength','9'); tel.setAttribute('inputmode','numeric'); tel.setAttribute('placeholder','987654321');
-      tel.addEventListener('keypress', e => { if (!/[0-9]/.test(e.key)) e.preventDefault(); });
-      tel.addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g,'').slice(0,9);
-        const v = this.value;
-        if (!v) { reset(this); return; }
-        if (v.length === 9) { if (!v.startsWith('9')) err(this,'Los celulares peruanos deben empezar con 9'); else ok(this); }
-        else err(this, 'Celular: ' + v.length + '/9 dígitos');
-      });
-    }
-
-    // Email
-    const email = document.querySelector('input[name="email"]');
-    if (email) {
-      email.addEventListener('blur', function() {
-        if (!this.value) { reset(this); return; }
-        if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.value)) ok(this);
-        else err(this, 'Correo inválido. Ej: dr.garcia@clinica.com');
-      });
-    }
-
-    // Contraseñas
-    const p1 = document.querySelector('input[name="password1"]');
-    const p2 = document.querySelector('input[name="password2"]');
-    if (p1) p1.addEventListener('input', function() { if (this.value && this.value.length < 6) err(this,'Mínimo 6 caracteres'); else if (this.value.length >= 6) ok(this); });
-    if (p1 && p2) p2.addEventListener('input', function() { if (this.value !== p1.value) err(this,'Las contraseñas no coinciden'); else ok(this); });
-
-    // Username: sin espacios ni caracteres especiales
-    const uname = document.querySelector('input[name="username"]');
-    if (uname) {
-      uname.addEventListener('input', function() {
-        this.value = this.value.toLowerCase().replace(/[^a-z0-9_.\-]/g,'');
-        if (this.value.length >= 3) ok(this);
-        else if (this.value.length > 0) err(this,'Mínimo 3 caracteres, solo letras y números');
-        else reset(this);
-      });
-    }
-  })();
 </script>
 {% endblock %}

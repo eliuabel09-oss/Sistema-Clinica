@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
-{% block title %}Consulta #{{ consulta.pk }} — Sullana Health{% endblock %}
+{% block title %}Consulta #{{ consulta.pk }} — Sullana System{% endblock %}
 {% block nav_consultas %}active{% endblock %}
 {% block page_title %}Consulta Médica{% endblock %}
 {% block page_subtitle %}{{ consulta.paciente.nombre_completo }} · {{ consulta.fecha|date:"d/m/Y H:i" }}{% endblock %}
 
 {% block header_actions %}
   <a href="{% url 'consultas:lista' %}" class="btn-secondary">← Volver</a>
-  <a href="{% url 'pacientes:detalle' consulta.paciente.pk %}" class="btn-secondary">👤 Ver Paciente</a>
+  <a href="{% url 'pacientes:detalle' consulta.paciente.pk %}" class="btn-secondary">Ver Paciente</a>
   {% if consulta.recetas.exists %}
   <a href="{% url 'consultas:receta_pdf' consulta.pk %}" target="_blank"
      class="btn-secondary"
      style="background:#f0fdfa;color:#0d9488;border:1px solid #99f6e4;font-weight:700;">
-    🖨️ Imprimir Receta
+    Imprimir Receta
   </a>
   {% endif %}
   {% if rol == 'ADMIN' %}
@@ -19,7 +19,7 @@
         onsubmit="return confirm('¿Eliminar esta consulta? Esta acción no se puede deshacer.');">
     {% csrf_token %}
     <button type="submit" class="btn-secondary" style="background:#fff1f2;color:#e11d48;border-color:#fecdd3;cursor:pointer;">
-      🗑️ Eliminar
+      Eliminar
     </button>
   </form>
   {% endif %}
@@ -34,7 +34,7 @@
     <!-- Signos vitales -->
     {% if consulta.peso_kg or consulta.presion_arterial or consulta.temperatura or consulta.frecuencia_cardiaca or consulta.saturacion_o2 %}
     <div class="card">
-      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px;">📊 Signos Vitales</h3>
+      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px;">Signos Vitales</h3>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
         {% if consulta.peso_kg %}
         <div style="text-align:center;padding:14px;background:#f8fafc;border-radius:10px;">
@@ -79,7 +79,7 @@
 
     <!-- Nota SOAP -->
     <div class="card">
-      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px;">📝 Nota Clínica SOAP</h3>
+      <h3 class="brand" style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px;">Nota Clínica SOAP</h3>
       <div style="display:flex;flex-direction:column;gap:16px;">
         {% for label, color, val in soap_fields %}
         <div>
@@ -132,7 +132,7 @@
     <!-- Recetas -->
     <div class="card">
       <h3 class="brand" style="font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;">
-        💊 Recetas ({{ consulta.recetas.count }})
+        Recetas ({{ consulta.recetas.count }})
       </h3>
       {% for receta in consulta.recetas.all %}
       <div style="padding:10px;background:#f0fdf4;border-radius:8px;margin-bottom:8px;border:1px solid #bbf7d0;">

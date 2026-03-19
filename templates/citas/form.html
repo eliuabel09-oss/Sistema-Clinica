@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{% if cita %}Editar Cita{% else %}Nueva Cita{% endif %} — Sullana Health{% endblock %}
+{% block title %}{% if cita %}Editar Cita{% else %}Nueva Cita{% endif %} — Sullana System{% endblock %}
 {% block nav_citas %}active{% endblock %}
 {% block page_title %}{% if cita %}Editar Cita{% else %}Nueva Cita{% endif %}{% endblock %}
 {% block page_subtitle %}{% if cita %}Modificar datos de la cita #{{ cita.pk }}{% else %}Agendamiento inteligente con disponibilidad en tiempo real{% endif %}{% endblock %}
@@ -292,7 +292,7 @@
       <!-- Encabezado -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <span style="background:var(--primary-soft);color:var(--primary);padding:10px;border-radius:12px;font-size:20px;">🗓️</span>
+          <span style="background:var(--primary-soft);color:var(--primary);padding:10px;border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
           <div>
             <div style="font-size:16px;font-weight:800;color:var(--text-dark);">Información de la Cita</div>
             <div style="font-size:12px;color:var(--text-muted);">
@@ -308,7 +308,7 @@
       </div>
 
       <!-- SECCIÓN 1: Paciente y tipo -->
-      <div class="section-title">📋 Datos del Paciente</div>
+      <div class="section-title">Datos del Paciente</div>
       <div class="grid-3" style="margin-bottom:24px;">
         <div class="span-2">
           <label class="field-label">Paciente asignado <span class="required">*</span></label>
@@ -334,7 +334,7 @@
       </div>
 
       <!-- SECCIÓN 2: Especialidad y Doctor -->
-      <div class="section-title">👨‍⚕️ Selección del Médico</div>
+      <div class="section-title">Selección del Médico</div>
       <div class="grid-3" style="margin-bottom:8px;">
 
         <!-- Paso 1: Especialidad -->
@@ -371,7 +371,7 @@
       </div>
 
       <!-- SECCIÓN 3: Fecha y Horario -->
-      <div class="section-title" style="margin-top:24px;">🕐 Fecha y Horario</div>
+      <div class="section-title" style="margin-top:24px;">Fecha y Horario</div>
       <div class="grid-3" style="margin-bottom:8px;">
 
         <!-- Paso 3: Fecha -->
@@ -402,10 +402,10 @@
         <div>
           <label class="field-label">Estado actual</label>
           <select name="estado" class="inp">
-            <option value="PENDIENTE"  {% if form.estado.value == 'PENDIENTE'  or not form.estado.value %}selected{% endif %}>🕒 Pendiente</option>
-            <option value="CONFIRMADA" {% if form.estado.value == 'CONFIRMADA' %}selected{% endif %}>✅ Confirmada</option>
-            <option value="CANCELADA"  {% if form.estado.value == 'CANCELADA'  %}selected{% endif %}>❌ Cancelada</option>
-            <option value="COMPLETADA" {% if form.estado.value == 'COMPLETADA' %}selected{% endif %}>🏁 Completada</option>
+            <option value="PENDIENTE"  {% if form.estado.value == 'PENDIENTE'  or not form.estado.value %}selected{% endif %}>Pendiente</option>
+            <option value="CONFIRMADA" {% if form.estado.value == 'CONFIRMADA' %}selected{% endif %}>Confirmada</option>
+            <option value="CANCELADA"  {% if form.estado.value == 'CANCELADA'  %}selected{% endif %}>Cancelada</option>
+            <option value="COMPLETADA" {% if form.estado.value == 'COMPLETADA' %}selected{% endif %}>Completada</option>
           </select>
         </div>
 
@@ -413,7 +413,7 @@
 
       <!-- Aviso sin horario -->
       <div class="alert-no-horario" id="alert-no-horario">
-        ⚠️ <span id="alert-no-horario-msg"></span>
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg><span id="alert-no-horario-msg"></span>
       </div>
 
       <!-- Panel de disponibilidad -->
@@ -447,7 +447,7 @@
         <!-- Slots -->
         <div class="slots-wrap">
           <div class="sugerencia-box" id="sugerencia-box">
-            <span>⚡</span>
+            
             <span>Próximo horario libre: <strong id="sugerido-hora"></strong></span>
             <button type="button" onclick="usarSugerido()">Usar este horario</button>
           </div>
@@ -464,7 +464,7 @@
         value="{% if cita %}{{ cita.fecha_hora|date:'Y-m-d' }}T{{ cita.fecha_hora|date:'H:i' }}{% endif %}">
 
       <!-- SECCIÓN 4: Notas -->
-      <div class="section-title" style="margin-top:24px;">📝 Notas</div>
+      <div class="section-title" style="margin-top:24px;">Notas</div>
       <div class="grid-2" style="margin-bottom:28px;">
         <div>
           <label class="field-label">Motivo de consulta</label>
@@ -479,14 +479,12 @@
       <!-- Botones -->
       <div style="display:flex;align-items:center;gap:12px;padding-top:20px;border-top:1px solid var(--border-soft);">
         <button type="submit" class="btn-main" id="btn-submit">
-          {% if cita %}💾 Guardar Cambios{% else %}✨ Agendar Nueva Cita{% endif %}
+          {% if cita %}Guardar Cambios{% else %}Agendar Nueva Cita{% endif %}
         </button>
         <a href="{% url 'citas:lista' %}" class="btn-secondary" style="text-decoration:none;padding:12px 20px;border-radius:14px;font-size:14px;font-weight:600;">Cancelar</a>
 
         {% if cita %}
-        <button type="button" onclick="document.getElementById('modalDel').style.display='flex'" class="btn-secondary" style="margin-left:auto;background:#fff1f2;color:#e11d48;border-color:#fecdd3;">
-          🗑️ Eliminar
-        </button>
+        <button type="button" onclick="document.getElementById('modalDel').style.display='flex'" class="btn-secondary" style="margin-left:auto;background:#fff1f2;color:#e11d48;border-color:#fecdd3;">Eliminar</button>
         {% endif %}
       </div>
 
@@ -498,7 +496,7 @@
 {% if cita %}
 <div id="modalDel" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.5);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:10000;">
   <div style="background:#fff;padding:35px;border-radius:24px;max-width:380px;text-align:center;">
-    <div style="background:#fee2e2;color:#ef4444;width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;">⚠️</div>
+    <div style="background:#fee2e2;color:#ef4444;width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
     <h3 style="color:#1e293b;margin-bottom:10px;">¿Eliminar esta cita?</h3>
     <p style="color:#64748b;font-size:14px;margin-bottom:24px;">Esta acción es definitiva.</p>
     <div style="display:flex;gap:12px;justify-content:center;">
@@ -542,7 +540,7 @@ function cargarDoctores(especialidad) {
         data.doctores.forEach(d => {
           const opt = document.createElement('option');
           opt.value = d.id;
-          const sinHorario = !d.tiene_horario ? ' ⚠️ sin horario' : '';
+          const sinHorario = !d.tiene_horario ? ' (sin horario)' : '';
           const inactivo   = !d.activo        ? ' [inactivo]'     : '';
           opt.textContent = `${d.nombre} — ${d.especialidad}${sinHorario}${inactivo}`;
           selDoctor.appendChild(opt);

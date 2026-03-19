@@ -198,6 +198,7 @@ def crear(request):
         except Exception as e:
             messages.error(request, f'Error al guardar la consulta: {e}')
 
+    from django.utils import timezone as tz
     return render(request, 'consultas/form.html', {
         'pacientes':           pacientes,
         'doctores':            doctores,
@@ -205,6 +206,7 @@ def crear(request):
         'cita_preseleccionada': cita_preseleccionada,
         'doctor_actual':       doctor_actual,
         'rol':                 rol,
+        'hoy_iso':             tz.now().date().isoformat(),
     })
 
 
