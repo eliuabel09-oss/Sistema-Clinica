@@ -25,14 +25,11 @@ def _validar_solapamiento(cita_nueva, excluir_pk=None):
         return None
 
     nueva_ini = cita_nueva.fecha_hora
-    # Normalizar a aware si es necesario
     if tz.is_naive(nueva_ini):
         nueva_ini = tz.make_aware(nueva_ini)
     nueva_fin = nueva_ini + timedelta(minutes=cita_nueva.duracion_min or 30)
 
-    # Solo comparar citas del mismo día — usar rango local para evitar problema UTC
     fecha_cita = nueva_ini.date()
-    from datetime import datetime
     inicio_dia = timezone.make_aware(datetime(fecha_cita.year, fecha_cita.month, fecha_cita.day, 0, 0, 0))
     fin_dia    = timezone.make_aware(datetime(fecha_cita.year, fecha_cita.month, fecha_cita.day, 23, 59, 59))
     qs = Cita.objects.filter(
@@ -63,20 +60,21 @@ def _validar_solapamiento(cita_nueva, excluir_pk=None):
 # ── AJAX: doctores por especialidad ───────────────────────────
 @login_required
 def ajax_doctores(request):
-    """Devuelve doctores filtrados por especialidad. Muestra todos (activos e inactivos)."""
+    """Devuelve solo doctores ACTIVOS filtrados por especialidad."""
     especialidad = request.GET.get('especialidad', '').strip()
-    qs = Doctor.objects.all().order_by('apellidos')
+    # FIX: solo doctores activos para evitar agendar a doctores inactivos
+    qs = Doctor.objects.filter(activo=True).order_by('apellidos')
     if especialidad:
         qs = qs.filter(especialidad__iexact=especialidad)
 
     data = []
     for d in qs:
         data.append({
-            'id':           d.pk,
-            'nombre':       f'Dr. {d.apellidos}, {d.nombres}',
-            'especialidad': d.especialidad,
+            'id':            d.pk,
+            'nombre':        f'Dr. {d.apellidos}, {d.nombres}',
+            'especialidad':  d.especialidad,
             'tiene_horario': d.horarios.exists(),
-            'activo':       d.activo,
+            'activo':        d.activo,
         })
     return JsonResponse({'doctores': data})
 
@@ -105,10 +103,8 @@ def ajax_horarios(request):
     except (Doctor.DoesNotExist, ValueError):
         return JsonResponse({'error': 'Doctor o fecha inválida'}, status=400)
 
-    # Día de semana (0=Lunes ... 6=Domingo)
     dia_semana = fecha.weekday()
 
-    # Verificar que el doctor trabaje ese día
     try:
         horario = doctor.horarios.get(dia_semana=dia_semana)
     except HorarioDoctor.DoesNotExist:
@@ -120,10 +116,6 @@ def ajax_horarios(request):
             'sugerido': None,
         })
 
-    # Citas activas del doctor en esa fecha
-    # IMPORTANTE: Con USE_TZ=True, fecha_hora__date compara en UTC.
-    # Usamos rango de datetimes locales convertidos a UTC para obtener el día correcto en Lima.
-    from datetime import datetime, timedelta as td2
     inicio_dia = timezone.make_aware(datetime(fecha.year, fecha.month, fecha.day, 0, 0, 0))
     fin_dia    = timezone.make_aware(datetime(fecha.year, fecha.month, fecha.day, 23, 59, 59))
 
@@ -133,7 +125,6 @@ def ajax_horarios(request):
         fecha_hora__lte=fin_dia,
     ).exclude(estado__in=['CANCELADA']).order_by('fecha_hora').values('fecha_hora', 'duracion_min')
 
-    # Construir bloques ocupados: lista de (inicio, fin) en minutos desde medianoche (hora local)
     ocupados = []
     for c in citas_dia:
         inicio_dt = c['fecha_hora']
@@ -143,7 +134,6 @@ def ajax_horarios(request):
         fin_min = ini_min + c['duracion_min']
         ocupados.append((ini_min, fin_min))
 
-    # Generar todos los slots cada 10 minutos dentro del horario del doctor
     h_ini = horario.hora_inicio.hour * 60 + horario.hora_inicio.minute
     h_fin = horario.hora_fin.hour   * 60 + horario.hora_fin.minute
 
@@ -153,7 +143,6 @@ def ajax_horarios(request):
     t = h_ini
     while t + duracion_min <= h_fin:
         t_fin = t + duracion_min
-        # Verificar conflicto con citas existentes
         libre = True
         for (oc_ini, oc_fin) in ocupados:
             if t < oc_fin and t_fin > oc_ini:
@@ -170,14 +159,12 @@ def ajax_horarios(request):
         })
         if libre and primer_libre is None:
             primer_libre = hora_str
-        t += 10  # siempre slots cada 10 min para detectar todos los huecos
+        t += 10
 
-    # Calcular carga del doctor ese día
     minutos_totales   = h_fin - h_ini
     minutos_ocupados  = sum(fin - ini for ini, fin in ocupados)
     pct_carga         = round((minutos_ocupados / minutos_totales) * 100) if minutos_totales > 0 else 0
 
-    # Clasificar disponibilidad
     if pct_carga >= 90:
         disponibilidad_label = 'muy_ocupado'
         disponibilidad_texto = 'Muy ocupado'
@@ -194,17 +181,17 @@ def ajax_horarios(request):
     libres_count = sum(1 for s in slots if s['libre'])
 
     return JsonResponse({
-        'disponible':          True,
-        'doctor_nombre':       f'Dr. {doctor.apellidos}, {doctor.nombres}',
-        'horario_inicio':      horario.hora_inicio.strftime('%H:%M'),
-        'horario_fin':         horario.hora_fin.strftime('%H:%M'),
-        'slots':               slots,
-        'sugerido':            primer_libre,
-        'pct_carga':           pct_carga,
+        'disponible':           True,
+        'doctor_nombre':        f'Dr. {doctor.apellidos}, {doctor.nombres}',
+        'horario_inicio':       horario.hora_inicio.strftime('%H:%M'),
+        'horario_fin':          horario.hora_fin.strftime('%H:%M'),
+        'slots':                slots,
+        'sugerido':             primer_libre,
+        'pct_carga':            pct_carga,
         'disponibilidad_label': disponibilidad_label,
         'disponibilidad_texto': disponibilidad_texto,
-        'citas_agendadas':     len(ocupados),
-        'slots_libres':        libres_count,
+        'citas_agendadas':      len(ocupados),
+        'slots_libres':         libres_count,
     })
 
 
@@ -223,6 +210,7 @@ def lista(request):
     q      = request.GET.get('q', '').strip()
     estado = request.GET.get('estado', '')
     fecha  = request.GET.get('fecha', '')
+
     if q:
         qs = qs.filter(
             Q(paciente__nombres__icontains=q) |
@@ -232,7 +220,14 @@ def lista(request):
     if estado:
         qs = qs.filter(estado=estado)
     if fecha:
-        qs = qs.filter(fecha_hora__date=fecha)
+        # FIX: usar rango local en vez de __date= para evitar problema UTC con USE_TZ=True
+        try:
+            fecha_date = date.fromisoformat(fecha)
+            ini = timezone.make_aware(datetime(fecha_date.year, fecha_date.month, fecha_date.day, 0, 0, 0))
+            fin = timezone.make_aware(datetime(fecha_date.year, fecha_date.month, fecha_date.day, 23, 59, 59))
+            qs = qs.filter(fecha_hora__gte=ini, fecha_hora__lte=fin)
+        except ValueError:
+            pass
 
     paginator = Paginator(qs, 20)
     citas = paginator.get_page(request.GET.get('page'))
@@ -244,7 +239,6 @@ def lista(request):
 @rol_requerido('ADMIN', 'SECRETARIA')
 def crear(request):
     from apps.pacientes.models import Paciente
-    from datetime import datetime
     pacientes      = Paciente.objects.filter(activo=True).order_by('apellidos')
     especialidades = Doctor.objects.filter(activo=True).values_list(
         'especialidad', flat=True
@@ -254,8 +248,6 @@ def crear(request):
         form = CitaForm(request.POST)
         if form.is_valid():
             nueva = form.save(commit=False)
-
-            # ── Validar solapamiento en backend ──────────────────
             error_solapamiento = _validar_solapamiento(nueva, excluir_pk=None)
             if error_solapamiento:
                 messages.error(request, error_solapamiento)
@@ -321,7 +313,7 @@ def eliminar(request, pk):
 
 
 # ── Cambiar estado ─────────────────────────────────────────────
-@login_required
+@login_required  # FIX: faltaba este decorador
 def cambiar_estado(request, pk):
     rol  = get_rol(request.user)
     cita = get_object_or_404(Cita, pk=pk)

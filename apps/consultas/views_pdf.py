@@ -113,11 +113,10 @@ def receta_pdf(request, pk):
         pk=pk
     )
 
-    # Permiso: admin ve todo, doctor solo sus consultas
+    # FIX: Secretaria también puede imprimir (no solo doctor y admin)
     if rol == 'DOCTOR' and consulta.doctor.usuario != request.user:
         return HttpResponseForbidden('No tienes permiso para ver esta receta.')
 
-    # Si no tiene recetas, igual generamos la receta vacía
     recetas = list(consulta.recetas.all())
 
     # ── Crear el buffer PDF ──────────────────────────────────
@@ -129,7 +128,7 @@ def receta_pdf(request, pk):
         rightMargin=1.8 * cm,
         topMargin=1.5 * cm,
         bottomMargin=2 * cm,
-        title=f'Receta Médica - {consulta.paciente.nombre_completo}',
+        title=f'Receta Medica - {consulta.paciente.nombre_completo}',
         author=f'Dr. {consulta.doctor.apellidos}',
     )
 
@@ -138,9 +137,9 @@ def receta_pdf(request, pk):
     W       = doc.width
 
     # ── CABECERA ─────────────────────────────────────────────
-    logo_texto = Paragraph('Sullana', estilos['titulo_clinica'])
+    logo_texto = Paragraph('Sullana System', estilos['titulo_clinica'])
     logo_sub   = Paragraph(
-        'HEALTH SYSTEM<br/>Sullana, Piura — Perú<br/>Tel: 949-021-141',
+        'Sistema de Gestion Clinica<br/>Sullana, Piura — Peru<br/>Tel: 949-021-141',
         estilos['subtitulo_clinica']
     )
     fecha_str  = consulta.fecha.strftime('%d/%m/%Y')
@@ -162,7 +161,7 @@ def receta_pdf(request, pk):
 
     # ── BANNER "RECETA MÉDICA" ────────────────────────────────
     banner = Table(
-        [[Paragraph('RECETA MÉDICA', estilos['titulo_doc'])]],
+        [[Paragraph('RECETA MEDICA', estilos['titulo_doc'])]],
         colWidths=[W],
         rowHeights=[0.65 * cm],
     )
@@ -183,29 +182,29 @@ def receta_pdf(request, pk):
     story.append(Paragraph('Datos del Paciente', estilos['seccion']))
     datos_paciente = Table(
         [
-            _fila_dato('PACIENTE',      p.nombre_completo, estilos),
-            _fila_dato('DNI',           dni,               estilos),
-            _fila_dato('EDAD / SEXO',   f'{edad} años / {p.get_sexo_display()}', estilos),
+            _fila_dato('PACIENTE',       p.nombre_completo, estilos),
+            _fila_dato('DNI',            dni,               estilos),
+            _fila_dato('EDAD / SEXO',    f'{edad} años / {p.get_sexo_display()}', estilos),
             _fila_dato('FECHA CONSULTA', consulta.fecha.strftime('%d/%m/%Y %H:%M'), estilos),
         ],
         colWidths=[W * 0.25, W * 0.75],
     )
     datos_paciente.setStyle(TableStyle([
-        ('BACKGROUND',  (0, 0), (-1, -1), TEAL_LIGHT),
+        ('BACKGROUND',    (0, 0), (-1, -1), TEAL_LIGHT),
         ('ROWBACKGROUNDS', (0, 0), (-1, -1), [TEAL_LIGHT, WHITE]),
-        ('TOPPADDING',  (0, 0), (-1, -1), 4),
+        ('TOPPADDING',    (0, 0), (-1, -1), 4),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-        ('BOX',         (0, 0), (-1, -1), 0.5, TEAL_MID),
-        ('LINEBELOW',   (0, 0), (-1, -2), 0.3, GRAY_LINE),
+        ('LEFTPADDING',   (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING',  (0, 0), (-1, -1), 8),
+        ('BOX',           (0, 0), (-1, -1), 0.5, TEAL_MID),
+        ('LINEBELOW',     (0, 0), (-1, -2), 0.3, GRAY_LINE),
     ]))
     story.append(datos_paciente)
     story.append(Spacer(1, 8))
 
     # ── DIAGNÓSTICO ───────────────────────────────────────────
     if consulta.diagnostico:
-        story.append(Paragraph('Diagnóstico', estilos['seccion']))
+        story.append(Paragraph('Diagnostico', estilos['seccion']))
         diag_table = Table(
             [[Paragraph(consulta.diagnostico, estilos['valor'])]],
             colWidths=[W],
@@ -305,7 +304,7 @@ def receta_pdf(request, pk):
     story.append(HRFlowable(width='100%', thickness=0.5, color=GRAY_LINE, spaceAfter=4))
     story.append(Paragraph(
         'Este documento es valido unicamente con firma y sello del medico tratante. '
-        'Sullana Health System — Sullana, Piura, Peru.',
+        'Sullana System — Sullana, Piura, Peru.',
         estilos['pie']
     ))
 

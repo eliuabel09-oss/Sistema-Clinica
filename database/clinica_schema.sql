@@ -335,3 +335,8 @@ LEFT JOIN doctores_horarios h ON h.doctor_id = d.id
 GROUP BY d.id;
 
 UPDATE `doctores` SET `activo` = 1 WHERE `id` = 3;
+
+-- Primero permitir NULL en la columna
+ALTER TABLE consultas MODIFY COLUMN doctor_id INT NULL;
+
+ALTER TABLE consultas MODIFY COLUMN doctor_id INT NOT NULL;

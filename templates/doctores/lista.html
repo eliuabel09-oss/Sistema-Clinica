@@ -12,7 +12,6 @@
 
 {% block content %}
 <style>
-  /* Contenedor de Tabla con Originalidad y Estilo */
   .doctor-card-container {
     background: #ffffff;
     border-radius: 16px;
@@ -21,111 +20,90 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     animation: fadeIn 0.4s ease-out;
   }
-
-  .doctor-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
+  .doctor-table { width: 100%; border-collapse: collapse; }
   .doctor-table thead th {
-    background: #f8fafc;
-    padding: 16px 20px;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 800;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    background: #f8fafc; padding: 16px 20px; text-align: left;
+    font-size: 11px; font-weight: 800; color: #64748b;
+    text-transform: uppercase; letter-spacing: 0.05em;
     border-bottom: 1px solid #e2e8f0;
   }
-
-  .doctor-table tbody td {
-    padding: 16px 20px;
-    vertical-align: middle;
-    border-bottom: 1px solid #f1f5f9;
-  }
-
-  .doctor-row:hover {
-    background-color: #fcfdfe;
-    transition: background 0.2s;
-  }
-
-  /* Avatares y Tags */
+  .doctor-table tbody td { padding: 16px 20px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+  .doctor-row:hover { background-color: #fcfdfe; transition: background 0.2s; }
   .doc-avatar-wrapper {
-    width: 45px;
-    height: 45px;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #f0fdfa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #ccfbf1;
-    flex-shrink: 0;
+    width: 45px; height: 45px; border-radius: 12px; overflow: hidden;
+    background: #f0fdfa; display: flex; align-items: center; justify-content: center;
+    border: 1px solid #ccfbf1; flex-shrink: 0;
   }
-
   .specialty-badge {
-    background: #f0fdfa;
-    color: #0d9488;
-    padding: 4px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    border: 1px solid #ccfbf1;
-    display: inline-block;
+    background: #f0fdfa; color: #0d9488; padding: 4px 12px;
+    border-radius: 8px; font-size: 12px; font-weight: 700;
+    border: 1px solid #ccfbf1; display: inline-block;
   }
-
   .access-badge {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+    padding: 4px 10px; border-radius: 20px; font-size: 11px;
+    font-weight: 700; display: inline-flex; align-items: center; gap: 5px;
   }
-
-  .access-active { background: #d1fae5; color: #065f46; }
-  .access-inactive { background: #fee2e2; color: #b91c1c; }
-
-  /* Botones de Acción Estilizados */
+  .access-active  { background: #d1fae5; color: #065f46; }
+  .access-inactive{ background: #fee2e2; color: #b91c1c; }
   .btn-edit-doc {
-    padding: 7px 14px;
-    background: #ffffff;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: all 0.2s;
+    padding: 7px 14px; background: #ffffff; color: #475569;
+    border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px;
+    font-weight: 700; text-decoration: none; transition: all 0.2s;
   }
-
-  .btn-edit-doc:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    color: #1e293b;
-  }
-
+  .btn-edit-doc:hover { background: #f8fafc; border-color: #cbd5e1; color: #1e293b; }
   .btn-delete-doc {
-    padding: 7px 10px;
-    background: #fff;
-    color: #ef4444;
-    border: 1px solid #fee2e2;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
+    padding: 7px 12px; background: #fff; color: #ef4444;
+    border: 1px solid #fee2e2; border-radius: 8px; cursor: pointer;
+    font-size: 12px; font-weight: 700; transition: all 0.2s;
   }
+  .btn-delete-doc:hover { background: #fef2f2; border-color: #fca5a5; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
 
-  .btn-delete-doc:hover {
-    background: #fef2f2;
-    border-color: #fca5a5;
+  /* ── MODAL ── */
+  .del-overlay {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(15,23,42,.55); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
   }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+  .del-overlay.open { display: flex; }
+  .del-box {
+    background: #fff; border-radius: 20px; padding: 32px 28px;
+    max-width: 420px; width: 90%;
+    box-shadow: 0 24px 64px rgba(15,23,42,.18);
+    animation: boxIn .22s cubic-bezier(.22,1,.36,1);
   }
+  @keyframes boxIn {
+    from { opacity:0; transform:translateY(14px) scale(.97); }
+    to   { opacity:1; transform:none; }
+  }
+  .del-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: #fff1f2; border: 1px solid #fecdd3;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+  }
+  .del-title { font-size: 17px; font-weight: 800; color: #0f172a; margin: 0 0 6px; letter-spacing: -.02em; }
+  .del-lead  { font-size: 13px; color: #64748b; margin: 0 0 10px; line-height: 1.55; }
+  .del-card  {
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 18px;
+  }
+  .del-card-name { font-size: 14px; font-weight: 700; color: #0f172a; }
+  .del-card-esp  { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .del-warn { font-size: 12px; color: #94a3b8; margin: 0 0 22px; line-height: 1.5; }
+  .del-actions { display: flex; gap: 10px; }
+  .del-btn-cancel {
+    flex: 1; padding: 11px; border-radius: 12px; font-size: 13px; font-weight: 700;
+    background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0;
+    cursor: pointer; transition: all .15s;
+  }
+  .del-btn-cancel:hover { background: #f1f5f9; }
+  .del-btn-confirm {
+    flex: 1; padding: 11px; border-radius: 12px; font-size: 13px; font-weight: 700;
+    background: #e11d48; color: #fff; border: none; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(225,29,72,.28); transition: all .15s;
+  }
+  .del-btn-confirm:hover { background: #be123c; }
 </style>
 
 <div class="doctor-card-container">
@@ -144,73 +122,62 @@
       {% for doctor in doctores %}
       <tr class="doctor-row">
         <td>
-          <div style="display:flex; align-items:center; gap:15px;">
+          <div style="display:flex;align-items:center;gap:15px;">
             <div class="doc-avatar-wrapper">
               {% if doctor.foto %}
-                <img src="{{ doctor.foto.url }}" style="width:100%; height:100%; object-fit:cover;">
+                <img src="{{ doctor.foto.url }}" style="width:100%;height:100%;object-fit:cover;">
               {% else %}
                 {{ doctor.apellidos|slice:":2"|upper }}
               {% endif %}
             </div>
             <div>
-              <div style="font-size:14px; font-weight:700; color:#1e293b;">Dr. {{ doctor.apellidos }}, {{ doctor.nombres }}</div>
+              <div style="font-size:14px;font-weight:700;color:#1e293b;">Dr. {{ doctor.apellidos }}, {{ doctor.nombres }}</div>
               {% if doctor.horario_atencion %}
-                <div style="font-size:11px; color:#64748b; margin-top: 2px;">Horario: {{ doctor.horario_atencion }}</div>
+                <div style="font-size:11px;color:#64748b;margin-top:2px;">{{ doctor.horario_atencion }}</div>
               {% endif %}
             </div>
           </div>
         </td>
-
+        <td><span class="specialty-badge">{{ doctor.especialidad }}</span></td>
         <td>
-          <span class="specialty-badge">{{ doctor.especialidad }}</span>
-        </td>
-
-        <td>
-          <div style="font-family: 'JetBrains Mono', monospace; font-size:12px; color:#475569; letter-spacing: 0.5px;">
+          <div style="font-family:'DM Mono',monospace;font-size:12px;color:#475569;letter-spacing:.04em;">
             {{ doctor.cedula }}
           </div>
         </td>
-
         <td>
-          <div style="font-size:13px; font-weight:600; color:#334155;">{{ doctor.telefono }}</div>
-          {% if doctor.email %}
-            <div style="font-size:12px; color:#94a3b8;">{{ doctor.email }}</div>
-          {% endif %}
+          <div style="font-size:13px;font-weight:600;color:#334155;">{{ doctor.telefono }}</div>
+          {% if doctor.email %}<div style="font-size:12px;color:#94a3b8;">{{ doctor.email }}</div>{% endif %}
         </td>
-
         <td style="text-align:center;">
           {% if doctor.usuario %}
-            <span class="access-badge access-active">
-              <span style="font-size: 8px;">●</span> {{ doctor.usuario.username }}
-            </span>
+            <span class="access-badge access-active"><span style="font-size:8px;">●</span> {{ doctor.usuario.username }}</span>
           {% else %}
-            <span class="access-badge access-inactive">
-              <span style="font-size: 8px;">●</span> Sin acceso
-            </span>
+            <span class="access-badge access-inactive"><span style="font-size:8px;">●</span> Sin acceso</span>
           {% endif %}
         </td>
-
         <td style="text-align:center;">
-          <div style="display:flex; gap:8px; justify-content:center;">
+          <div style="display:flex;gap:8px;justify-content:center;">
             <a href="{% url 'doctores:horarios' doctor.pk %}" class="btn-edit-doc"
-               title="Configurar horarios" style="background:#f0fdfa;color:#0d9488;border-color:#99f6e4;">
-              Horarios
-            </a>
-            <a href="{% url 'doctores:editar' doctor.pk %}" class="btn-edit-doc" title="Editar Perfil">
-              Editar
-            </a>
-            <form method="post" action="{% url 'doctores:eliminar' doctor.pk %}" onsubmit="return confirm('¿Está seguro de eliminar al Dr. {{ doctor.apellidos }}? Esta acción es irreversible.')">
-              {% csrf_token %}
-              <button type="submit" class="btn-delete-doc" title="Eliminar registro" style="font-size:12px;font-weight:700;padding:7px 12px;">Eliminar</button>
-            </form>
+               style="background:#f0fdfa;color:#0d9488;border-color:#99f6e4;">Horarios</a>
+            <a href="{% url 'doctores:editar' doctor.pk %}" class="btn-edit-doc">Editar</a>
+            <button type="button" class="btn-delete-doc"
+              onclick="abrirModal(
+                '{% url 'doctores:eliminar' doctor.pk %}',
+                'Dr. {{ doctor.apellidos }}, {{ doctor.nombres }}',
+                '{{ doctor.especialidad }}',
+                {{ doctor.n_consultas }},
+                {{ doctor.n_citas }}
+              )">Eliminar</button>
           </div>
         </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="6" style="padding: 80px 20px; text-align:center;">
-          <p style="color:#64748b; font-weight: 600; font-size: 15px;">No hay doctores registrados en el sistema.</p>
-          <a href="{% url 'doctores:crear' %}" class="btn-primary" style="text-decoration: none; margin-top: 10px; display: inline-block;">Registrar el primer especialista</a>
+        <td colspan="6" style="padding:80px 20px;text-align:center;">
+          <p style="color:#64748b;font-weight:600;font-size:15px;">No hay doctores registrados en el sistema.</p>
+          <a href="{% url 'doctores:crear' %}" class="btn-primary" style="text-decoration:none;margin-top:10px;display:inline-block;">
+            Registrar el primer especialista
+          </a>
         </td>
       </tr>
       {% endfor %}
@@ -218,9 +185,61 @@
   </table>
 
   {% if doctores %}
-    <div style="padding: 15px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+    <div style="padding:15px 20px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">
       Sullana System — Gestión de Personal Médico
     </div>
   {% endif %}
 </div>
+
+{# ── MODAL CONFIRMAR ELIMINACIÓN ── #}
+{% csrf_token %}
+<div class="del-overlay" id="del-overlay" onclick="if(event.target===this)cerrarModal()">
+  <div class="del-box">
+    <div class="del-icon">
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#e11d48" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      </svg>
+    </div>
+    <p class="del-title">Eliminar especialista</p>
+    <p class="del-lead">Estás a punto de eliminar a:</p>
+    <div class="del-card">
+      <div class="del-card-name" id="del-nombre"></div>
+      <div class="del-card-esp"  id="del-esp"></div>
+    </div>
+    <p class="del-warn" id="del-warn"></p>
+    <div class="del-actions">
+      <button class="del-btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <form id="del-form" method="post" style="flex:1;">
+        <input type="hidden" name="csrfmiddlewaretoken" id="del-csrf">
+        <button type="submit" class="del-btn-confirm">Eliminar definitivamente</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function abrirModal(url, nombre, esp, nConsultas, nCitas) {
+    document.getElementById('del-nombre').textContent = nombre;
+    document.getElementById('del-esp').textContent    = esp;
+    document.getElementById('del-form').action        = url;
+    document.getElementById('del-csrf').value =
+      document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Construir mensaje dinámico según si tiene historial
+    let warn = 'Se revocará su acceso al sistema y se eliminarán sus horarios asignados.';
+    if (nConsultas > 0 || nCitas > 0) {
+      let partes = [];
+      if (nConsultas > 0) partes.push(nConsultas + ' consulta' + (nConsultas > 1 ? 's' : ''));
+      if (nCitas > 0)     partes.push(nCitas + ' cita' + (nCitas > 1 ? 's' : ''));
+      warn += ' Sus ' + partes.join(' y ') + ' quedarán intactas en el historial clínico.';
+    }
+    warn += ' El doctor dejará de aparecer en el sistema.';
+    document.getElementById('del-warn').textContent = warn;
+    document.getElementById('del-overlay').classList.add('open');
+  }
+  function cerrarModal() {
+    document.getElementById('del-overlay').classList.remove('open');
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
+</script>
 {% endblock %}
