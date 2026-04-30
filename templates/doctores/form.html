@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{% if doctor %}Editar Doctor{% else %}Nuevo Doctor{% endif %} — Sullana System{% endblock %}
+{% block title %}{% if doctor %}Editar Doctor{% else %}Nuevo Doctor{% endif %} — MediSyne Clinica{% endblock %}
 {% block nav_doctores %}active{% endblock %}
 {% block page_title %}{% if doctor %}Configuración de Especialista{% else %}Registro de Médico{% endif %}{% endblock %}
 {% block page_subtitle %}{% if doctor %}Gestionando el perfil del Dr. {{ doctor.apellidos }}{% else %}Complete los datos para integrar un nuevo profesional{% endif %}{% endblock %}
@@ -343,7 +343,7 @@
       <div style="padding:15px;border-radius:16px;background:#fffbeb;border:1px solid #fef3c7;display:flex;gap:10px;">
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#92400e" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg>
         <p style="font-size:11px;color:#92400e;margin:0;line-height:1.5;">
-          <strong>Importante:</strong> Al registrar un doctor, asegúrese de que el número de cédula sea el oficial para evitar duplicidad en el historial clínico de Sullana System.
+          <strong>Importante:</strong> Al registrar un doctor, asegúrese de que el número de cédula sea el oficial para evitar duplicidad en el historial clínico de MediSyne Clinica.
         </p>
       </div>
     </div>

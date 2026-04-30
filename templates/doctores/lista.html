@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
-{% block title %}Doctores — Sullana System{% endblock %}
+{% block title %}Doctores — MediSyne Clinica{% endblock %}
 {% block nav_doctores %}active{% endblock %}
 {% block page_title %}Panel de Especialistas{% endblock %}
-{% block page_subtitle %}Gestionando {{ doctores.count }} doctores en Sullana System{% endblock %}
+{% block page_subtitle %}Gestionando {{ doctores.count }} doctores en MediSyne Clinica{% endblock %}
 
 {% block header_actions %}
   <a href="{% url 'doctores:crear' %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700;">
@@ -186,7 +186,7 @@
 
   {% if doctores %}
     <div style="padding:15px 20px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">
-      Sullana System — Gestión de Personal Médico
+      MediSyne Clinica — Gestión de Personal Médico
     </div>
   {% endif %}
 </div>

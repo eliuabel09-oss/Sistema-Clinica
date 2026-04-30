@@ -5,7 +5,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
-# FIX: usar views_dashboard en lugar de la función inline
 from apps.core.views_dashboard import dashboard
 
 urlpatterns = [

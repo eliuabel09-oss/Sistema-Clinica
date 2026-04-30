@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Consulta #{{ consulta.pk }} — Sullana System{% endblock %}
+{% block title %}Consulta #{{ consulta.pk }} — MediSyne Clinica{% endblock %}
 {% block nav_consultas %}active{% endblock %}
 {% block page_title %}Consulta Médica{% endblock %}
 {% block page_subtitle %}{{ consulta.paciente.nombre_completo }} · {{ consulta.fecha|date:"d/m/Y H:i" }}{% endblock %}
